@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MobileNavigation } from "@/components/layout/mobile-navigation";
 import { PageContainer } from "@/components/layout/page-container";
 import { siteConfig } from "@/config/site";
 
@@ -34,33 +35,13 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <Link
             href={siteConfig.primaryLink.href}
-            className="hidden rounded-lg border border-cyan-300/20 bg-cyan-400 px-4 py-2.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 sm:inline-flex"
+            className="inline-flex min-h-11 items-center rounded-lg border border-cyan-300/20 bg-cyan-400 px-3 text-xs font-semibold text-slate-950 transition-colors hover:bg-cyan-300 sm:px-4 sm:py-2.5 sm:text-sm"
           >
-            {siteConfig.primaryLink.label}
+            <span className="sm:hidden">Demo</span>
+            <span className="hidden sm:inline">{siteConfig.primaryLink.label}</span>
           </Link>
 
-          <details className="relative lg:hidden">
-            <summary className="flex cursor-pointer list-none items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-semibold text-slate-200 marker:content-none">
-              Menu
-              <span aria-hidden="true">⌄</span>
-            </summary>
-            <nav
-              className="absolute right-0 top-12 grid w-64 gap-1 rounded-xl border border-slate-700 bg-slate-900 p-3 shadow-2xl shadow-black/40"
-              aria-label="Navigasi mobile"
-            >
-              {siteConfig.navigation.map((item) => (
-                <Link key={item.href} href={item.href} className={linkStyles}>
-                  {item.label}
-                </Link>
-              ))}
-              <Link
-                href={siteConfig.primaryLink.href}
-                className="mt-2 rounded-lg bg-cyan-400 px-4 py-2.5 text-center text-sm font-semibold text-slate-950"
-              >
-                {siteConfig.primaryLink.label}
-              </Link>
-            </nav>
-          </details>
+          <MobileNavigation />
         </div>
       </PageContainer>
     </header>

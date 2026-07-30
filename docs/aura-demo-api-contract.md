@@ -13,7 +13,9 @@ Status saat ini:
   handling, idempotency, simulated handoff, dan cleanup sudah tersedia di AURA;
 - public Route Handlers, cookie browser, koneksi BFF, dan integrasi frontend
   belum dibuat;
-- tahap aktif adalah **Contract Reconciliation**, bukan implementasi BFF.
+- kontrak publik BFF untuk create/current session telah difinalisasi;
+- tahap aktif adalah **Contract Finalization — BFF Session**, bukan implementasi
+  BFF.
 
 Dokumen ini tidak memberi izin kepada browser atau Next.js untuk mengakses
 PostgreSQL, data production, Telegram production, maupun rahasia AURA.
@@ -51,6 +53,7 @@ Boundary wajib:
 - service-to-service authentication;
 - opaque demo session token dengan SHA-256 digest di persistence;
 - idle expiry 2 jam dan absolute expiry 24 jam;
+- current-session history maksimum 50 pesan dan latest safe handoff;
 - session-scoped ownership dan isolation;
 - chat idempotency berdasarkan UUID `requestId`;
 - simulated handoff;
@@ -153,15 +156,28 @@ Cookie harus:
 
 - `HttpOnly`;
 - `Secure` pada production;
-- `SameSite=Lax` sebagai keputusan awal;
+- `SameSite=Lax`;
 - `Path=/`;
 - tidak memakai atribut `Domain`;
 - tidak dapat dibaca JavaScript;
 - tidak berisi profil pengguna atau JSON identity;
-- hanya berisi opaque AURA session token atau opaque BFF handle sesuai desain
-  final;
+- value hanya berisi opaque raw AURA session token;
 - tidak ditampilkan dalam response body atau log;
-- dihapus ketika AURA menyatakan session tidak valid.
+- memakai expiry yang tidak melewati `absoluteExpiresAt`.
+
+Cookie hanya diset setelah create-session internal berhasil dan seluruh response
+internal lolos validasi ketat. Cookie tidak ditulis ulang atau dirotasi ketika
+session aktif digunakan kembali.
+
+Cookie hanya dihapus ketika:
+
+- AURA mengembalikan exact code `DEMO_SESSION_REQUIRED`; atau
+- nilai cookie lokal secara sintaks tidak valid dan tidak aman dikirim ke AURA.
+
+Cookie tidak dihapus ketika terjadi timeout, HTTP 429, HTTP 5xx, network failure,
+konfigurasi/service authentication failure, atau malformed upstream response.
+Pada kegagalan transient tersebut cookie lama dipertahankan dan BFF tidak
+membuat session pengganti.
 
 Reset mempertahankan session yang sama. Reset tidak merotasi cookie atau token.
 
@@ -210,11 +226,73 @@ Internal success shape:
 }
 ```
 
-Planned public BFF mapping:
+Kontrak public `POST /api/demo/session`:
 
-- simpan `sessionToken` pada cookie HttpOnly;
-- jangan sertakan token dalam JSON;
-- teruskan hanya object `session` yang telah di-allowlist.
+- tidak menerima query parameter;
+- body harus benar-benar kosong; object JSON kosong pun ditolak;
+- wajib melewati same-origin/CSRF validation;
+- token, session, owner, dan internal URL tidak pernah diterima dari browser;
+- seluruh response memakai `Cache-Control: no-store`.
+
+Behavior tanpa cookie:
+
+1. validasi request;
+2. panggil internal create-session;
+3. validasi response secara ketat;
+4. set cookie HttpOnly dari `sessionToken`;
+5. kembalikan `201 Created`.
+
+Behavior ketika cookie menunjuk session aktif:
+
+1. panggil internal current-session dengan token dari cookie;
+2. validasi response secara ketat;
+3. gunakan kembali session aktif;
+4. jangan membuat Customer atau DemoSession baru;
+5. jangan mengganti atau merotasi cookie;
+6. kembalikan `200 OK`.
+
+Behavior ketika AURA mengembalikan exact code `DEMO_SESSION_REQUIRED` untuk
+cookie existing:
+
+1. hapus cookie lama;
+2. buat session baru;
+3. validasi response create-session secara ketat;
+4. set cookie baru;
+5. kembalikan `201 Created`.
+
+Nilai cookie yang secara lokal tidak valid secara sintaks dihapus dan
+diperlakukan seperti request tanpa cookie. BFF membuat session baru dan hanya
+menyetel cookie baru setelah response internal valid.
+
+Jika pemeriksaan cookie existing gagal karena timeout, HTTP 429, HTTP 5xx,
+network failure, malformed upstream response, atau service/config authentication
+failure, BFF:
+
+- tidak membuat session baru;
+- tidak mengganti atau menghapus cookie;
+- mengembalikan public-safe error.
+
+Aturan fail-closed ini mencegah Customer atau DemoSession duplikat ketika status
+session existing tidak dapat dipastikan.
+
+Exact public response untuk session baru maupun session aktif yang digunakan
+kembali:
+
+```json
+{
+  "session": {
+    "status": "active",
+    "expiresAt": "2026-07-30T10:00:00Z",
+    "idleExpiresAt": "2026-07-30T10:00:00Z",
+    "absoluteExpiresAt": "2026-07-31T08:00:00Z",
+    "messageCount": 0
+  }
+}
+```
+
+Response session baru berstatus `201`; response reuse session aktif berstatus
+`200`. Raw token, messages, handoff, Customer ID, dan DemoSession ID tidak masuk
+response public POST.
 
 ### Current session
 
@@ -224,9 +302,84 @@ Internal response berisi:
 - maksimal 50 `messages`;
 - `handoff` terbaru atau `null`.
 
-Internal message memiliki `id`, `role`, `content`, dan `createdAt`. BFF tidak
-boleh meneruskan internal database ID secara otomatis; public response harus
-memakai allowlist yang disepakati sebelum implementasi.
+Kontrak public `GET /api/demo/session`:
+
+- tidak menerima query parameter atau body;
+- token hanya berasal dari cookie HttpOnly;
+- header browser `X-Demo-Session-Token` harus diabaikan atau ditolak;
+- seluruh response memakai `Cache-Control: no-store`.
+
+Jika cookie tidak ada, BFF tidak memanggil AURA dan mengembalikan
+`401 SESSION_REQUIRED`. Jika cookie secara lokal tidak valid secara sintaks, BFF
+menghapus cookie tanpa memanggil AURA dan mengembalikan
+`401 SESSION_REQUIRED`.
+
+Dengan cookie valid, BFF memanggil `GET /internal/demo/sessions/current`,
+memvalidasi response secara ketat, memetakan hanya field yang di-allowlist, lalu
+mengembalikan `200 OK`.
+
+Jika AURA mengembalikan exact code `DEMO_SESSION_REQUIRED`, BFF menghapus cookie
+dan mengembalikan `401 SESSION_REQUIRED`. Pada timeout, HTTP 429, HTTP 5xx,
+network failure, malformed upstream response, atau service/config authentication
+failure, BFF mempertahankan cookie dan memetakan kegagalan ke public-safe
+`429`, `502`, `503`, atau `504`.
+
+Exact public success response:
+
+```json
+{
+  "session": {
+    "status": "active",
+    "expiresAt": "2026-07-30T10:00:00Z",
+    "idleExpiresAt": "2026-07-30T10:00:00Z",
+    "absoluteExpiresAt": "2026-07-31T08:00:00Z",
+    "messageCount": 2
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "Saya ingin membuat reservasi.",
+      "createdAt": "2026-07-30T08:00:00Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Reservasi untuk berapa orang?",
+      "createdAt": "2026-07-30T08:00:01Z"
+    }
+  ],
+  "handoff": null
+}
+```
+
+Public message allowlist tepat `role`, `content`, dan `createdAt`. `role` hanya
+boleh bernilai `user` atau `assistant`.
+
+Public handoff berbentuk `null` atau:
+
+```json
+{
+  "status": "simulated",
+  "summary": "Permintaan bantuan admin telah disimulasikan.",
+  "createdAt": "2026-07-30T08:05:00Z"
+}
+```
+
+Public handoff allowlist tepat `status`, `summary`, dan `createdAt`. Nilai
+`status` wajib literal `simulated`. Mapping dari safe internal DTO adalah:
+
+| Internal field | Public field | Mapping |
+|---|---|---|
+| `status` | `status` | Harus tervalidasi sebagai literal `simulated`. |
+| `safeSummary` | `summary` | Diteruskan setelah validasi sebagai safe allowlisted summary. |
+| `createdAt` | `createdAt` | Diteruskan setelah validasi timestamp. |
+
+Response internal yang tidak dapat dipetakan sesuai aturan tersebut dianggap
+malformed upstream response; BFF tidak mengarang nilai pengganti.
+
+Response public tidak boleh mengekspos internal message ID, database ID, request
+ID, marker status, owner ID, session ID, token digest, internal reference,
+internal handoff ID, Customer ID, raw provider reason, SupportTicket ID, atau
+data Telegram.
 
 ### Reset
 
@@ -382,19 +535,52 @@ Internal AURA memakai envelope aman:
 
 Validation error dapat menambahkan array `errors` berisi field dan safe code.
 
-| HTTP | Internal code utama | Planned BFF behavior |
-|---:|---|---|
-| 401 | `DEMO_SERVICE_AUTH_REQUIRED` | Jangan bedakan detail auth; kembalikan public service error aman. |
-| 401 | `DEMO_SESSION_REQUIRED` | Hapus cookie invalid dan kembalikan session-required public error. |
-| 409 | `REQUEST_CONFLICT` | Teruskan conflict aman tanpa internal detail. |
-| 422 | `VALIDATION_ERROR` | Map hanya field/code yang di-allowlist. |
-| 429 | `RATE_LIMIT_EXCEEDED` | Teruskan header rate-limit aman. |
-| 502 | `PROVIDER_ERROR` | Kembalikan provider error tersanitasi. |
-| 503 | `SERVICE_UNAVAILABLE` | Kembalikan temporary-unavailable response. |
-| 504 | `PROVIDER_TIMEOUT` | Kembalikan timeout response. |
+Seluruh public error untuk session BFF memakai exact envelope:
 
-BFF tidak boleh meneruskan stack trace, SQL, raw provider error, URL internal,
-token, digest, atau database identifier.
+```json
+{
+  "error": {
+    "code": "SESSION_REQUIRED",
+    "message": "Demo session is required."
+  }
+}
+```
+
+Nilai `code` dan `message` berubah sesuai exact mapping berikut:
+
+| Kondisi | HTTP | Public code | Public message |
+|---|---:|---|---|
+| Invalid query/body/request | 400 | `INVALID_REQUEST` | `The request is invalid.` |
+| Cross-site/CSRF rejected | 403 | `FORBIDDEN` | `The request is not allowed.` |
+| Missing cookie | 401 | `SESSION_REQUIRED` | `Demo session is required.` |
+| Invalid/expired/revoked session | 401 | `SESSION_REQUIRED` | `Demo session is required.` |
+| AURA rate limit | 429 | `RATE_LIMITED` | `Too many requests. Please try again later.` |
+| Malformed upstream response | 502 | `UPSTREAM_INVALID_RESPONSE` | `The demo service returned an invalid response.` |
+| Missing/invalid BFF config | 503 | `SERVICE_UNAVAILABLE` | `The demo service is unavailable.` |
+| AURA/network 5xx | 503 | `SERVICE_UNAVAILABLE` | `The demo service is unavailable.` |
+| Timeout | 504 | `UPSTREAM_TIMEOUT` | `The demo service timed out.` |
+
+Hanya exact internal code `DEMO_SESSION_REQUIRED` yang diperlakukan sebagai
+session invalid. Jika AURA mengembalikan HTTP 401 dengan code lain, termasuk
+service authentication failure, BFF memetakannya ke
+`503 SERVICE_UNAVAILABLE`, tidak menghapus cookie, dan tidak membuat session
+pengganti.
+
+Pada public `429`, BFF hanya boleh meneruskan header berikut jika nilainya telah
+divalidasi sebagai integer:
+
+- `Retry-After`;
+- `X-RateLimit-Limit`;
+- `X-RateLimit-Remaining`;
+- `X-RateLimit-Reset`.
+
+`X-RateLimit-Reset` menggunakan Unix epoch seconds UTC. Header upstream lain
+tidak diteruskan. Seluruh response sukses maupun error memakai
+`Cache-Control: no-store`.
+
+BFF tidak boleh meneruskan raw exception, internal code, stack trace, SQL, raw
+provider error, URL internal, token, digest, database identifier, atau ID
+internal.
 
 ## 15. Timeout and retry behavior
 
@@ -463,9 +649,16 @@ Status: planned di BFF.
 Minimum controls:
 
 - browser hanya memanggil same-origin `/api/demo/*`;
-- validate `Origin` pada state-changing request;
-- gunakan `SameSite=Lax` pada cookie sebagai baseline;
+- validasi `Origin` dan terapkan same-origin/CSRF protection pada
+  `POST /api/demo/session`;
+- `POST /api/demo/session` tidak menerima query dan body harus benar-benar
+  kosong;
+- `GET /api/demo/session` tidak menerima query atau body;
+- gunakan `SameSite=Lax` pada cookie;
 - jangan menerima internal auth headers dari browser;
+- abaikan atau tolak browser header `X-Demo-Session-Token`;
+- token/session, owner/internal ID, dan internal URL tidak boleh diterima dari
+  browser;
 - batasi method, content type, body size, dan extra fields;
 - evaluasi CSRF token tambahan bila deployment/origin model membutuhkannya;
 - CORS bukan pengganti CSRF protection.
@@ -498,10 +691,23 @@ menggunakan prefix publik seperti `NEXT_PUBLIC_`.
 | Simulated handoff | Implemented | Planned mapping | Belum terhubung |
 | Cleanup CLI | Implemented | N/A | N/A |
 | Cleanup scheduler | Belum dikonfigurasi | N/A | N/A |
-| HttpOnly cookie | N/A | Planned | Belum tersedia |
-| Public `/api/demo/*` | N/A | Planned | Belum tersedia |
+| HttpOnly cookie | N/A | Kontrak final, belum diimplementasikan | Belum tersedia |
+| Public session POST/GET | N/A | Kontrak final, belum diimplementasikan | Belum tersedia |
+| Public chat/reservation/reset | N/A | Planned | Belum tersedia |
 | Typed reservation mutation output | Schema ada, value masih `null` | Planned mapping | Belum tersedia |
 | Overall provider timeout | Belum | Planned timeout boundary | N/A |
+
+Untuk session BFF, komponen website yang masih planned adalah:
+
+- `POST` dan `GET` Route Handler;
+- validasi konfigurasi server-side;
+- HTTP client BFF-ke-AURA;
+- cookie HttpOnly;
+- same-origin protection;
+- public response mapper;
+- public error mapper.
+
+Source code BFF belum diimplementasikan pada finalisasi kontrak ini.
 
 ## 21. Known limitations
 
@@ -513,7 +719,6 @@ menggunakan prefix publik seperti `NEXT_PUBLIC_`.
 - BFF Route Handlers dan cookie belum dibuat;
 - scheduler cleanup belum dikonfigurasi;
 - frontend belum terhubung;
-- public message identifier policy belum ditetapkan;
 - production deployment topology dan CSRF policy final belum ditetapkan.
 
 ## 22. Test acceptance criteria
@@ -522,7 +727,12 @@ Sebelum BFF dianggap siap:
 
 - browser tidak pernah menerima AURA service/session token;
 - create session menyimpan token hanya pada cookie HttpOnly;
-- missing/invalid session menghapus cookie dan menghasilkan error aman;
+- create session menggunakan kembali cookie aktif tanpa membuat Customer atau
+  DemoSession baru;
+- exact `DEMO_SESSION_REQUIRED` mengganti invalid cookie pada POST dan menghapus
+  invalid cookie pada GET;
+- missing cookie menghasilkan error aman tanpa memanggil AURA;
+- transient failure mempertahankan cookie dan tidak membuat session pengganti;
 - dua browser session tidak dapat membaca atau mengubah data satu sama lain;
 - public request tidak dapat mengirim owner/internal IDs;
 - chat mempertahankan UUID `requestId` dan replay tidak membuat mutation ganda;

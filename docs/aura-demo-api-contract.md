@@ -11,11 +11,14 @@ Status saat ini:
   PR #10;
 - internal session, chat, reservation read, reset, rate limiting, safe error
   handling, idempotency, simulated handoff, dan cleanup sudah tersedia di AURA;
-- public Route Handlers, cookie browser, koneksi BFF, dan integrasi frontend
-  belum dibuat;
-- kontrak publik BFF untuk create/current session telah difinalisasi;
-- tahap aktif adalah **Contract Finalization — BFF Session**, bukan implementasi
-  BFF.
+- implementasi session BFF website telah committed pada `782dfa7 Implement AURA
+  demo session BFF`;
+- `POST` dan `GET /api/demo/session`, cookie HttpOnly, konfigurasi server-only,
+  AURA client internal, dan security controls session telah diimplementasikan pada
+  branch website saat ini;
+- chat, reservations, reset, integrasi frontend, IP/client-subject limiter, dan
+  deployment tetap planned;
+- tahap aktif adalah **Documentation Status Alignment — BFF Session**.
 
 Dokumen ini tidak memberi izin kepada browser atau Next.js untuk mengakses
 PostgreSQL, data production, Telegram production, maupun rahasia AURA.
@@ -61,41 +64,49 @@ Boundary wajib:
 - safe error envelopes dan rate-limit headers;
 - single-run cleanup CLI untuk session expired/revoked dan expired buckets.
 
-### Planned in Next.js BFF
+### Implemented in Next.js BFF (current website branch)
 
-- public `/api/demo/*` Route Handlers;
-- HttpOnly session cookie;
-- server-only service-token forwarding;
-- server-only AURA session-token forwarding;
-- public request validation dan response allowlisting;
-- internal-to-public error mapping;
-- IP/client-subject limiter;
-- request timeout;
-- same-origin dan CSRF controls.
+- `POST /api/demo/session` dan `GET /api/demo/session` melalui dynamic Node.js
+  Route Handler;
+- lazy server-only configuration dan server-to-server AURA client;
+- `X-BFF-Service-Token` hanya pada request internal dan raw AURA session token
+  hanya pada cookie HttpOnly atau internal `X-Demo-Session-Token` header;
+- cookie HttpOnly, `Secure` pada production, `SameSite=Lax`, `Path=/`, dan expiry
+  berdasarkan absolute expiry AURA;
+- active-session reuse, replacement pada exact invalid session untuk POST, serta
+  deletion cookie pada exact invalid session untuk GET;
+- strict internal DTO parsing, exact `DEMO_SESSION_REQUIRED` envelope parsing,
+  dan public internal-field redaction;
+- overall upstream timeout, limit response 256 KiB, dan bounded response-stream
+  cancellation;
+- body probe POST satu detik, rejection query/body/browser-token header, serta
+  Origin dan Sec-Fetch-Site protection;
+- fixed public error mapping, safe 429 header forwarding, dan
+  `Cache-Control: no-store`.
 
-### Not implemented yet
+### Still planned in Next.js BFF
 
-- BFF Route Handlers;
-- browser cookie;
-- frontend integration;
+- `POST /api/demo/chat`, `GET /api/demo/reservations`, dan `POST /api/demo/reset`;
+- frontend integration, browser chat UI, reservation display, dan reset UI;
+- IP/client-subject limiter dan browser integration tests;
 - scheduler deployment untuk cleanup;
 - typed reservation mutation yang diisi oleh chat service;
 - provider-wide/overall timeout;
 - administrative recovery untuk incomplete idempotency marker;
 - final confirmation flow untuk update reservation.
 
-## 4. Planned public BFF endpoints
+## 4. Public BFF endpoints
 
-Endpoint berikut adalah rencana kontrak browser-ke-Next.js, bukan endpoint yang
-sudah tersedia:
+Endpoint session berikut telah diimplementasikan pada branch website saat ini;
+endpoint lain tetap merupakan rencana kontrak browser-ke-Next.js:
 
 | Method | Public endpoint | Purpose |
 |---|---|---|
-| POST | `/api/demo/session` | Membuat session AURA dan menyimpan token pada cookie HttpOnly. |
-| GET | `/api/demo/session` | Mengambil status session, history, dan handoff terbaru. |
-| POST | `/api/demo/chat` | Mengirim pesan dengan UUID `requestId`. |
-| GET | `/api/demo/reservations` | Mengambil reservation milik session aktif. |
-| POST | `/api/demo/reset` | Mereset data bisnis demo pada session yang sama. |
+| POST | `/api/demo/session` | Implemented: membuat session AURA dan menyimpan token pada cookie HttpOnly. |
+| GET | `/api/demo/session` | Implemented: mengambil status session, history, dan handoff terbaru. |
+| POST | `/api/demo/chat` | Planned: mengirim pesan dengan UUID `requestId`. |
+| GET | `/api/demo/reservations` | Planned: mengambil reservation milik session aktif. |
+| POST | `/api/demo/reset` | Planned: mereset data bisnis demo pada session yang sama. |
 
 Browser tidak boleh menerima atau mengetahui:
 
@@ -138,7 +149,7 @@ Header aktual AURA:
 - `X-BFF-Service-Token` untuk seluruh endpoint internal;
 - `X-Demo-Session-Token` untuk endpoint session-scoped.
 
-Aturan BFF yang direncanakan:
+Aturan BFF yang telah diimplementasikan untuk session endpoint:
 
 - browser tidak boleh dapat mengatur kedua header tersebut;
 - BFF menghapus atau menimpa header internal dari request publik;
@@ -150,7 +161,8 @@ Aturan BFF yang direncanakan:
 
 ## 7. HttpOnly cookie contract
 
-Cookie adalah behavior **planned** di Next.js BFF dan belum diimplementasikan.
+Cookie session telah diimplementasikan pada Next.js BFF branch saat ini melalui
+commit `782dfa7 Implement AURA demo session BFF`.
 
 Cookie harus:
 
@@ -588,8 +600,10 @@ Status aktual:
 
 - AURA memetakan `TimeoutError` dari chat core ke `504 PROVIDER_TIMEOUT`;
 - provider-wide/overall timeout belum tersedia;
-- BFF request timeout belum dibuat;
-- placeholder `AURA_BFF_TIMEOUT_MS` disediakan untuk keputusan implementasi;
+- BFF session request memakai overall timeout `AURA_BFF_TIMEOUT_MS`, termasuk
+  response body, decode, parsing, dan classification;
+- placeholder `AURA_BFF_TIMEOUT_MS` tetap server-side dan tidak menetapkan nilai
+  pada dokumen ini;
 - mutation request tidak boleh di-retry transparan dengan `requestId` baru;
 - completed replay dengan `requestId` yang sama aman dan idempotent;
 - incomplete marker menghasilkan conflict sampai recovery administratif tersedia.
@@ -644,7 +658,8 @@ beserta data demo yang aman untuk dihapus.
 
 ## 18. CSRF and same-origin considerations
 
-Status: planned di BFF.
+Status: implemented untuk session BFF pada branch website saat ini. Kebijakan
+deployment dan evaluasi CSRF tambahan tetap planned.
 
 Minimum controls:
 
@@ -681,33 +696,23 @@ menggunakan prefix publik seperti `NEXT_PUBLIC_`.
 
 | Capability | AURA | Next.js BFF | Frontend |
 |---|---|---|---|
-| Internal session API | Implemented | Belum terhubung | Belum terhubung |
-| Internal chat API | Implemented | Belum terhubung | Belum terhubung |
-| Reservation read | Implemented | Belum terhubung | Belum terhubung |
-| Reset same session | Implemented | Belum terhubung | Belum terhubung |
-| Session/global limiter | Implemented | N/A | N/A |
-| IP/client-subject limiter | Belum | Planned | N/A |
-| Idempotency | Implemented | Harus mempertahankan `requestId` | Belum terhubung |
-| Simulated handoff | Implemented | Planned mapping | Belum terhubung |
+| Create demo session | Implemented | Implemented | Not connected |
+| Read current session | Implemented | Implemented | Not connected |
+| HttpOnly session cookie | N/A | Implemented | Browser-managed |
+| Chat | Implemented internally | Planned | Planned |
+| Reservations read | Implemented internally | Planned | Planned |
+| Reset | Implemented internally | Planned | Planned |
+| Backend rate limiting | Implemented | Consumes safe headers | N/A |
+| IP/client-subject limiter | N/A | Planned | N/A |
 | Cleanup CLI | Implemented | N/A | N/A |
-| Cleanup scheduler | Belum dikonfigurasi | N/A | N/A |
-| HttpOnly cookie | N/A | Kontrak final, belum diimplementasikan | Belum tersedia |
-| Public session POST/GET | N/A | Kontrak final, belum diimplementasikan | Belum tersedia |
-| Public chat/reservation/reset | N/A | Planned | Belum tersedia |
-| Typed reservation mutation output | Schema ada, value masih `null` | Planned mapping | Belum tersedia |
-| Overall provider timeout | Belum | Planned timeout boundary | N/A |
+| Deployment scheduler | Not configured | Not configured | N/A |
+| Typed reservation mutation output | Schema ada, value masih `null` | Planned mapping | Not connected |
+| Overall provider timeout | Not implemented | Planned | N/A |
 
-Untuk session BFF, komponen website yang masih planned adalah:
-
-- `POST` dan `GET` Route Handler;
-- validasi konfigurasi server-side;
-- HTTP client BFF-ke-AURA;
-- cookie HttpOnly;
-- same-origin protection;
-- public response mapper;
-- public error mapper.
-
-Source code BFF belum diimplementasikan pada finalisasi kontrak ini.
+Untuk session BFF, Route Handler, validasi konfigurasi server-side, HTTP client
+BFF-ke-AURA, cookie HttpOnly, same-origin protection, public response mapper,
+dan public error mapper telah diimplementasikan. Frontend belum terhubung dan
+chat/reservations/reset BFF tetap planned.
 
 ## 21. Known limitations
 
@@ -716,14 +721,32 @@ Source code BFF belum diimplementasikan pada finalisasi kontrak ini.
 - provider-wide/overall timeout belum dibuat;
 - incomplete-marker administrative recovery belum dibuat;
 - IP/client-subject limiter belum dibuat;
-- BFF Route Handlers dan cookie belum dibuat;
+- automated Route Handler test framework belum dibuat;
+- browser integration test belum dibuat;
+- trusted proxy/origin behavior belum diuji saat deployment;
+- server-only boundary masih didukung convention `.server.ts` dan import graph;
+- chat/reservations/reset BFF belum dibuat;
 - scheduler cleanup belum dikonfigurasi;
 - frontend belum terhubung;
 - production deployment topology dan CSRF policy final belum ditetapkan.
 
 ## 22. Test acceptance criteria
 
-Sebelum BFF dianggap siap:
+Session BFF telah lulus validasi statis pada branch website saat ini:
+
+- typecheck, lint, dan production build;
+- dynamic route detection tanpa build-time secret requirement atau backend call;
+- strict token/cookie boundary, timeout dan body-size protection, serta
+  public-safe mapping.
+
+Validasi yang belum dilakukan:
+
+- automated Route Handler tests;
+- real browser integration;
+- deployed trusted-proxy validation;
+- real end-to-end request ke AURA melalui BFF.
+
+Kriteria perilaku session BFF yang dipertahankan:
 
 - browser tidak pernah menerima AURA service/session token;
 - create session menyimpan token hanya pada cookie HttpOnly;
@@ -749,17 +772,24 @@ Sebelum BFF dianggap siap:
 
 ## 23. Rollout sequence
 
-1. commit kontrak yang sudah direkonsiliasi;
-2. audit struktur Next.js untuk penempatan BFF;
-3. tetapkan environment placeholders tanpa nilai pada source;
-4. implementasikan shared server-only AURA client;
-5. implementasikan create/current session Route Handlers dan cookie;
-6. tambahkan timeout, origin checks, error mapping, dan client-subject limiter;
-7. implementasikan chat BFF dengan idempotency-preserving `requestId`;
-8. implementasikan reservation read dan same-session reset;
-9. tambahkan integration/security tests;
-10. hubungkan frontend setelah BFF lulus audit;
-11. konfigurasi deployment dan external cleanup scheduler secara terpisah.
+Completed:
+
+1. AURA internal demo API;
+2. rate limiting dan cleanup;
+3. public BFF contract;
+4. POST/GET session BFF;
+5. HttpOnly session cookie dan security controls.
+
+Next:
+
+1. documentation status alignment;
+2. branch verification dan push;
+3. chat BFF;
+4. reservations BFF;
+5. reset BFF;
+6. frontend integration;
+7. browser/runtime testing;
+8. deployment hardening.
 
 Setiap langkah memerlukan scope, validasi, dan persetujuan tersendiri. Dokumen
 ini tidak mengimplementasikan satu pun langkah BFF.

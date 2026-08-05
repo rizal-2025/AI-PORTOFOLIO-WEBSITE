@@ -18,9 +18,8 @@ export function SectionHeading({
     <div className={`max-w-3xl ${alignment}`}>
       {eyebrow ? (
         <p
-          className={`mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-cyan-300 ${eyebrowAlignment}`}
+          className={`mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300 ${eyebrowAlignment}`}
         >
-          <span className="h-px w-7 bg-cyan-400" aria-hidden="true" />
           {eyebrow}
         </p>
       ) : null}

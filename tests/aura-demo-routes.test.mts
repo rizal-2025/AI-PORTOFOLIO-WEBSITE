@@ -23,7 +23,7 @@ const timestamp = "2026-08-05T10:00:00Z";
 const absolute = "2099-08-06T10:00:00Z";
 
 process.env.AURA_INTERNAL_BASE_URL = "https://aura.internal";
-process.env.AURA_DEMO_SERVICE_TOKEN = "synthetic-service-token";
+process.env.AURA_DEMO_SERVICE_TOKEN = "synthetic-service-token-for-route-tests";
 process.env.AURA_DEMO_SESSION_COOKIE = "aura_demo";
 process.env.AURA_BFF_TIMEOUT_MS = "5000";
 
@@ -71,7 +71,10 @@ test.before(() => {
   globalThis.fetch = async (input, init) => {
     const url = new URL(String(input));
     const headers = new Headers(init?.headers);
-    assert.equal(headers.get("X-BFF-Service-Token"), "synthetic-service-token");
+    assert.equal(
+      headers.get("X-BFF-Service-Token"),
+      "synthetic-service-token-for-route-tests",
+    );
     const scoped = url.pathname !== "/internal/demo/sessions";
     if (scoped) {
       const receivedToken = headers.get("X-Demo-Session-Token");

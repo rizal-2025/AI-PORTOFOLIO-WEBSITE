@@ -1,4 +1,3 @@
-import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 
 import {
@@ -6,72 +5,30 @@ import {
   createAuraDemoSession,
   getCurrentAuraDemoSession,
 } from "@/lib/aura-demo/client.server";
-import {
-  AuraDemoConfigError,
-  getAuraDemoCookieConfig,
-  getAuraDemoConfig,
-  type AuraDemoConfig,
-  type AuraDemoCookieConfig,
-} from "@/lib/aura-demo/config.server";
+import type { AuraDemoConfig } from "@/lib/aura-demo/config.server";
 import {
   deleteAuraSessionCookie,
   setAuraSessionCookie,
 } from "@/lib/aura-demo/cookie.server";
 import type {
   PublicCreateSessionResponse,
-  PublicDemoErrorCode,
 } from "@/lib/aura-demo/contracts";
 import {
   validateGetSessionRequest,
   validatePostSessionRequest,
 } from "@/lib/aura-demo/request";
 import { publicError, publicJson } from "@/lib/aura-demo/response";
+import {
+  clientErrorResponse,
+  clientErrorResponseForSession,
+  cookieConfigOrError,
+  cookieStoreOrError,
+  upstreamConfigOrError,
+} from "@/lib/aura-demo/route.server";
 import { isValidAuraSessionToken } from "@/lib/aura-demo/token.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function clientErrorResponse(error: unknown): NextResponse {
-  if (error instanceof AuraDemoClientError) {
-    const errorCodes: Record<
-      Exclude<typeof error.kind, "session-required">,
-      PublicDemoErrorCode
-    > = {
-      "invalid-response": "UPSTREAM_INVALID_RESPONSE",
-      "rate-limited": "RATE_LIMITED",
-      timeout: "UPSTREAM_TIMEOUT",
-      unavailable: "SERVICE_UNAVAILABLE",
-    };
-
-    if (error.kind === "session-required") {
-      return publicError("SESSION_REQUIRED");
-    }
-
-    return publicError(errorCodes[error.kind], error.rateLimitHeaders);
-  }
-  return publicError("SERVICE_UNAVAILABLE");
-}
-
-function cookieConfigOrError(): AuraDemoCookieConfig | NextResponse {
-  try {
-    return getAuraDemoCookieConfig();
-  } catch {
-    return publicError("SERVICE_UNAVAILABLE");
-  }
-}
-
-function upstreamConfigOrError(
-  cookieConfig: AuraDemoCookieConfig,
-): AuraDemoConfig | NextResponse {
-  try {
-    return getAuraDemoConfig(cookieConfig);
-  } catch (error) {
-    if (error instanceof AuraDemoConfigError) {
-      return publicError("SERVICE_UNAVAILABLE");
-    }
-    return publicError("SERVICE_UNAVAILABLE");
-  }
-}
 
 async function createSessionResponse(
   config: AuraDemoConfig,
@@ -122,11 +79,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return cookieConfig;
   }
 
-  let cookieStore;
-  try {
-    cookieStore = await cookies();
-  } catch {
-    return publicError("SERVICE_UNAVAILABLE");
+  const cookieStore = await cookieStoreOrError();
+  if (cookieStore instanceof NextResponse) {
+    return cookieStore;
   }
 
   const existingCookie = cookieStore.get(cookieConfig.sessionCookieName);
@@ -182,11 +137,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return cookieConfig;
   }
 
-  let cookieStore;
-  try {
-    cookieStore = await cookies();
-  } catch {
-    return publicError("SERVICE_UNAVAILABLE");
+  const cookieStore = await cookieStoreOrError();
+  if (cookieStore instanceof NextResponse) {
+    return cookieStore;
   }
 
   const existingCookie = cookieStore.get(cookieConfig.sessionCookieName);
@@ -211,14 +164,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
     return publicJson(current, 200);
   } catch (error) {
-    if (
-      error instanceof AuraDemoClientError &&
-      error.kind === "session-required"
-    ) {
-      const response = publicError("SESSION_REQUIRED");
-      deleteAuraSessionCookie(response, config.sessionCookieName);
-      return response;
-    }
-    return clientErrorResponse(error);
+    return clientErrorResponseForSession(error, config);
   }
 }

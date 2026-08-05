@@ -7,12 +7,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
+    default: "Rizal — AI Engineer",
+    template: "%s | Rizal — AI Engineer",
   },
   description: siteConfig.description,
   openGraph: {
-    title: siteConfig.name,
+    title: "Rizal — AI Engineer",
     description: siteConfig.description,
     type: "website",
     url: siteConfig.url,

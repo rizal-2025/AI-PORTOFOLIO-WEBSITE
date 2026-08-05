@@ -27,18 +27,16 @@ export const siteConfig = {
   shortName: "RIZAL/AI",
   url: "https://example.com",
   description:
-    "Portofolio Rizal, AI Engineer yang membangun AI Agent praktis untuk customer service, reservasi, dan otomasi operasional.",
+    "Portofolio Rizal, AI Engineer yang membangun sistem AI, backend aman, dan produk digital yang berguna.",
   navigation: [
     { label: "Home", href: "/" },
     { label: "Projects", href: "/projects" },
-    { label: "AURA", href: "/projects/aura" },
-    { label: "Demo", href: "/demo/aura" },
     { label: "Architecture", href: "/architecture" },
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
   ] satisfies NavigationItem[],
   primaryLink: {
-    label: "Coba Demo AURA",
+    label: "AURA Demo",
     href: "/demo/aura",
   },
   owner: {

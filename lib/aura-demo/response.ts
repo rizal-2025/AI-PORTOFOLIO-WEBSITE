@@ -26,6 +26,10 @@ const PUBLIC_ERRORS: Record<
     status: 429,
     message: "Too many requests. Please try again later.",
   },
+  REQUEST_CONFLICT: {
+    status: 409,
+    message: "The request conflicts with the current demo state.",
+  },
   UPSTREAM_INVALID_RESPONSE: {
     status: 502,
     message: "The demo service returned an invalid response.",

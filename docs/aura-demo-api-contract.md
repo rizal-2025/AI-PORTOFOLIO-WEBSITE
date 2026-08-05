@@ -18,8 +18,9 @@ Status saat ini:
   branch website saat ini;
 - typed reservation mutation, history/replay provenance, simulated handoff
   redaction, dan provider-wide timeout sudah tersedia di AURA;
-- chat, reservations, reset, integrasi frontend, IP/client-subject limiter, dan
-  deployment tetap planned pada website;
+- chat, reservations, dan reset BFF sudah diimplementasikan pada branch
+  `feature/aura-demo-bff-complete`;
+- integrasi frontend, IP/client-subject limiter, dan deployment tetap planned;
 - kontrak Chat BFF telah diaudit dengan keputusan **GO** sebelum implementasi.
 
 Dokumen ini tidak memberi izin kepada browser atau Next.js untuk mengakses
@@ -90,9 +91,15 @@ Boundary wajib:
 - fixed public error mapping, safe 429 header forwarding, dan
   `Cache-Control: no-store`.
 
-### Still planned in Next.js BFF
+### Implemented on the complete BFF branch
 
 - `POST /api/demo/chat`, `GET /api/demo/reservations`, dan `POST /api/demo/reset`;
+- exact public DTO allowlists, strict request validation, exact error mapping,
+  shared cookie/config helpers, dan no-retry AURA client;
+- Node built-in parser/client/Route Handler security tests tanpa dependency baru.
+
+### Still planned
+
 - frontend integration, browser chat UI, reservation display, dan reset UI;
 - IP/client-subject limiter dan browser integration tests;
 - scheduler deployment untuk cleanup;
@@ -101,16 +108,16 @@ Boundary wajib:
 
 ## 4. Public BFF endpoints
 
-Endpoint session berikut telah diimplementasikan pada branch website saat ini;
-endpoint lain tetap merupakan rencana kontrak browser-ke-Next.js:
+Seluruh endpoint BFF berikut telah diimplementasikan pada branch website saat
+ini:
 
 | Method | Public endpoint | Purpose |
 |---|---|---|
 | POST | `/api/demo/session` | Implemented: membuat session AURA dan menyimpan token pada cookie HttpOnly. |
 | GET | `/api/demo/session` | Implemented: mengambil status session, history, dan handoff terbaru. |
-| POST | `/api/demo/chat` | Planned: mengirim pesan dengan UUID `requestId`. |
-| GET | `/api/demo/reservations` | Planned: mengambil reservation milik session aktif. |
-| POST | `/api/demo/reset` | Planned: mereset data bisnis demo pada session yang sama. |
+| POST | `/api/demo/chat` | Implemented: mengirim pesan dengan UUID `requestId`. |
+| GET | `/api/demo/reservations` | Implemented: mengambil reservation milik session aktif. |
+| POST | `/api/demo/reset` | Implemented: mereset data bisnis demo pada session yang sama. |
 
 Browser tidak boleh menerima atau mengetahui:
 
@@ -583,7 +590,8 @@ Behavior aktual:
 - `X-RateLimit-Reset` menggunakan Unix epoch seconds UTC;
 - response 429 juga memiliki `Retry-After`, `X-RateLimit-Limit`,
   `X-RateLimit-Remaining`, dan `Cache-Control: no-store`;
-- IP/client-subject limiter belum dibuat dan menunggu BFF.
+- IP/client-subject limiter belum dibuat dan menunggu coordinated deployment
+  hardening AURA/website sebelum public go-live.
 
 ## 14. Error mapping
 
@@ -759,43 +767,43 @@ menggunakan prefix publik seperti `NEXT_PUBLIC_`.
 | Create demo session | Implemented | Implemented | Not connected |
 | Read current session | Implemented | Implemented | Not connected |
 | HttpOnly session cookie | N/A | Implemented | Browser-managed |
-| Chat | Implemented internally | Planned | Planned |
-| Reservations read | Implemented internally | Planned | Planned |
-| Reset | Implemented internally | Planned | Planned |
+| Chat | Implemented internally | Implemented | Planned |
+| Reservations read | Implemented internally | Implemented | Planned |
+| Reset | Implemented internally | Implemented | Planned |
 | Backend rate limiting | Implemented | Consumes safe headers | N/A |
 | IP/client-subject limiter | N/A | Planned | N/A |
 | Cleanup CLI | Implemented | N/A | N/A |
 | Deployment scheduler | Not configured | Not configured | N/A |
-| Typed reservation mutation output | Implemented | Planned mapping | Not connected |
+| Typed reservation mutation output | Implemented | Implemented | Not connected |
 | Overall provider timeout | Implemented, 30 detik | Existing bounded client deadline | N/A |
 
 Untuk session BFF, Route Handler, validasi konfigurasi server-side, HTTP client
 BFF-ke-AURA, cookie HttpOnly, same-origin protection, public response mapper,
-dan public error mapper telah diimplementasikan. Frontend belum terhubung dan
-chat/reservations/reset BFF tetap planned.
+dan public error mapper telah diimplementasikan untuk seluruh BFF. Frontend
+belum terhubung.
 
 ## 21. Known limitations
 
 - update reservation final confirmation masih roadmap;
 - incomplete-marker administrative recovery belum dibuat;
 - IP/client-subject limiter belum dibuat;
-- automated Route Handler test framework belum dibuat;
 - browser integration test belum dibuat;
 - trusted proxy/origin behavior belum diuji saat deployment;
 - server-only boundary masih didukung convention `.server.ts` dan import graph;
-- chat/reservations/reset BFF belum dibuat;
 - scheduler cleanup belum dikonfigurasi;
 - frontend belum terhubung;
 - production deployment topology dan CSRF policy final belum ditetapkan.
 
 ## 22. Test acceptance criteria
 
-Session BFF telah lulus validasi statis pada branch website saat ini:
+Complete BFF telah lulus validasi pada branch website saat ini:
 
 - typecheck, lint, dan production build;
 - dynamic route detection tanpa build-time secret requirement atau backend call;
 - strict token/cookie boundary, timeout dan body-size protection, serta
-  public-safe mapping.
+  public-safe mapping;
+- 17 Node built-in parser, client, cancellation, dan Route Handler tests tanpa
+  dependency baru.
 
 Validasi yang belum dilakukan:
 
@@ -840,12 +848,9 @@ Completed:
 
 Next:
 
-1. chat BFF;
-2. reservations BFF;
-3. reset BFF;
-4. frontend integration;
-5. browser/runtime testing;
-6. deployment hardening.
+1. frontend integration;
+2. browser/runtime testing;
+3. deployment hardening.
 
 Setiap langkah memerlukan scope, validasi, dan persetujuan tersendiri. Dokumen
 ini tidak mengimplementasikan satu pun langkah BFF.

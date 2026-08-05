@@ -1,28 +1,31 @@
 import type { Metadata } from "next";
+import { AuraDemoConsole } from "@/components/demo/aura-demo-console";
 import { PageContainer } from "@/components/layout/page-container";
-import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
   title: "AURA Demo",
-  description: "Status integrasi web demo AURA.",
+  description: "Coba percakapan dan alur reservasi AURA melalui BFF yang aman.",
 };
 
 export default function AuraDemoPage() {
   return (
-    <section className="min-h-[calc(100svh-4rem)] bg-slate-950 py-20 sm:py-28">
+    <section className="min-h-[calc(100svh-4rem)] bg-slate-950 py-12 sm:py-16">
       <PageContainer>
-        <div className="max-w-3xl border border-slate-800 bg-slate-900/30 p-7 sm:p-10">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">Status</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">AURA Demo</h1>
-          <p className="mt-6 text-lg font-medium text-slate-200">Web demo integration is in progress.</p>
-          <p className="mt-4 max-w-2xl leading-8 text-slate-400">
-            Backend AURA sedang diintegrasikan melalui server-side BFF agar session token dan service credential tidak pernah dikirim ke browser.
+        <header className="mb-10 max-w-3xl">
+          <p className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-cyan-300">
+            Interactive case study
           </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/projects/aura">Lihat Proyek AURA</ButtonLink>
-            <ButtonLink href="/architecture" variant="secondary">Lihat Architecture</ButtonLink>
-          </div>
-        </div>
+          <h1 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-white sm:text-5xl">
+            AURA Demo
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400 sm:text-lg">
+            Uji percakapan dan alur reservasi dalam sesi sementara. Semua akses backend melewati BFF; kredensial layanan dan token sesi tidak pernah tersedia bagi browser.
+          </p>
+          <p className="mt-3 text-sm text-slate-500">
+            Gunakan data contoh saja. Demo ini tidak menghubungi operator manusia atau membuat reservasi nyata.
+          </p>
+        </header>
+        <AuraDemoConsole />
       </PageContainer>
     </section>
   );

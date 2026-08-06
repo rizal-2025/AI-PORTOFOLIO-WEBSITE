@@ -20,7 +20,9 @@ Status saat ini:
   redaction, dan provider-wide timeout sudah tersedia di AURA;
 - chat, reservations, dan reset BFF sudah diimplementasikan pada branch
   `feature/aura-demo-bff-complete`;
-- integrasi frontend, IP/client-subject limiter, dan deployment tetap planned;
+- integrasi frontend dan IP/client-subject limiter telah diimplementasikan;
+- konfigurasi Vercel/Koyeb/Neon/GitHub Actions telah disiapkan, sementara akun,
+  secret, migration, deployment, dan traffic tetap berada di human gate;
 - kontrak Chat BFF telah diaudit dengan keputusan **GO** sebelum implementasi.
 
 Dokumen ini tidak memberi izin kepada browser atau Next.js untuk mengakses
@@ -100,9 +102,9 @@ Boundary wajib:
 
 ### Still planned
 
-- frontend integration, browser chat UI, reservation display, dan reset UI;
-- IP/client-subject limiter dan browser integration tests;
-- scheduler deployment untuk cleanup;
+- provider account setup, secret provisioning, staging migration, dan deploy;
+- deployed browser/cold-start integration tests;
+- activation scheduler cleanup setelah public-go-live gate;
 - administrative recovery untuk incomplete idempotency marker;
 - final confirmation flow untuk update reservation.
 
@@ -574,9 +576,11 @@ Policy aktual dipilih server:
 | Action | Scope | Limit | Window |
 |---|---:|---:|---:|
 | `session_create` | global | 30 | 60 detik |
+| `session_create` | client subject | 5 | 60 detik |
 | `session_current` | session | 60 | 60 detik |
 | `chat` | session | 20 | 60 detik |
 | `chat` | global | 300 | 60 detik |
+| `chat` | client subject | 60 | 60 detik |
 | `reservations_read` | session | 30 | 60 detik |
 | `reset` | session | 5 | 3.600 detik |
 
@@ -590,8 +594,9 @@ Behavior aktual:
 - `X-RateLimit-Reset` menggunakan Unix epoch seconds UTC;
 - response 429 juga memiliki `Retry-After`, `X-RateLimit-Limit`,
   `X-RateLimit-Remaining`, dan `Cache-Control: no-store`;
-- IP/client-subject limiter belum dibuat dan menunggu coordinated deployment
-  hardening AURA/website sebelum public go-live.
+- client subject wajib berupa digest lowercase 64-hex yang diturunkan BFF dari
+  alamat klien Vercel menggunakan HMAC server-only; raw address tidak mencapai
+  AURA.
 
 ## 14. Error mapping
 
@@ -718,7 +723,8 @@ Behavior aktual:
   production reference;
 - menghapus expired rate-limit buckets secara bounded;
 - output hanya aggregate aman;
-- deployment scheduler belum dikonfigurasi.
+- workflow GitHub Actions telah dikonfigurasi tetapi schedule tetap inert sampai
+  variable go-live diaktifkan setelah approval.
 
 Reset dan cleanup berbeda: reset mempertahankan session/Customer dan active
 buckets, sedangkan lifecycle cleanup menghapus session yang sudah tidak aktif
@@ -752,7 +758,8 @@ Placeholder server-side yang diizinkan:
 
 | Placeholder | Purpose |
 |---|---|
-| `AURA_INTERNAL_BASE_URL` | Base URL internal AURA yang hanya diketahui BFF. |
+| `AURA_SERVER_BASE_URL` | Exact Koyeb HTTPS origin yang hanya diketahui BFF. |
+| `AURA_INTERNAL_BASE_URL` | Alias migrasi sementara; tidak boleh diset bersama nama baru. |
 | `AURA_DEMO_SERVICE_TOKEN` | Service credential BFF-ke-AURA. |
 | `AURA_DEMO_SESSION_COOKIE` | Nama cookie HttpOnly. |
 | `AURA_BFF_TIMEOUT_MS` | Batas waktu request BFF-ke-AURA. |
@@ -771,7 +778,7 @@ menggunakan prefix publik seperti `NEXT_PUBLIC_`.
 | Reservations read | Implemented internally | Implemented | Planned |
 | Reset | Implemented internally | Implemented | Planned |
 | Backend rate limiting | Implemented | Consumes safe headers | N/A |
-| IP/client-subject limiter | N/A | Planned | N/A |
+| IP/client-subject limiter | Implemented | Implemented untuk direct Vercel ingress | N/A |
 | Cleanup CLI | Implemented | N/A | N/A |
 | Deployment scheduler | Not configured | Not configured | N/A |
 | Typed reservation mutation output | Implemented | Implemented | Not connected |
@@ -786,13 +793,11 @@ belum terhubung.
 
 - update reservation final confirmation masih roadmap;
 - incomplete-marker administrative recovery belum dibuat;
-- IP/client-subject limiter belum dibuat;
 - browser integration test belum dibuat;
-- trusted proxy/origin behavior belum diuji saat deployment;
+- trusted Vercel/Koyeb runtime behavior belum diuji saat deployment;
 - server-only boundary masih didukung convention `.server.ts` dan import graph;
-- scheduler cleanup belum dikonfigurasi;
-- frontend belum terhubung;
-- production deployment topology dan CSRF policy final belum ditetapkan.
+- scheduler cleanup belum diaktifkan;
+- production deployment dan public traffic belum dijalankan.
 
 ## 22. Test acceptance criteria
 

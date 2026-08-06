@@ -6,13 +6,12 @@ provider changes, or public traffic.
 
 ## Runtime contract
 
-- Build the repository `Dockerfile` from a reviewed commit. The Next.js build
-  uses standalone output and the runtime image runs as an unprivileged user.
-- Terminate HTTPS at the selected trusted ingress and forward a canonical HTTPS
-  request URL to Next.js. Production BFF configuration rejects a non-HTTPS AURA
-  base URL.
-- Keep AURA private. Browser code may call only the same-origin `/api/demo/*`
-  routes and must never receive the internal URL or either credential.
+- Deploy the reviewed commit through Vercel's native Next.js Git integration;
+  the provider does not use the repository Dockerfile.
+- Vercel terminates HTTPS and supplies the canonical public request URL.
+  Production BFF configuration accepts only a pathless Koyeb HTTPS origin.
+- Browser code may call only same-origin `/api/demo/*` routes and must never
+  receive the Koyeb URL or either credential.
 - Use `/api/health` for liveness. It has a fixed, no-store response and does not
   probe AURA or reveal configuration.
 - All BFF responses remain no-store. Baseline response headers disable MIME
@@ -24,11 +23,12 @@ provider changes, or public traffic.
 Provision values only in the selected platform's secret manager. Never put
 values in source, build arguments, `NEXT_PUBLIC_*`, logs, or support chat.
 
-- `AURA_INTERNAL_BASE_URL`
+- `AURA_SERVER_BASE_URL`
 - `AURA_DEMO_SERVICE_TOKEN`
 - `AURA_DEMO_SESSION_COOKIE`
 - `AURA_BFF_TIMEOUT_MS`
-- deployment-specific trusted proxy/client-IP variables after provider review
+- `AURA_CLIENT_SUBJECT_HMAC_KEY`
+- `AURA_TRUSTED_INGRESS_MODE`
 
 The service token must match the AURA token and pass the same 32–512 character,
 non-placeholder, non-repeated, no-control-character validation. The cookie name
@@ -36,17 +36,13 @@ must be dedicated to this demo and stable for the deployment. The BFF timeout
 must remain within its validated bound and no mutating request may be retried
 automatically.
 
-## Trusted ingress gate
+## Trusted ingress contract
 
 Same-origin checks compare the browser Origin with the canonical request URL
-seen by Next.js. Before staging, prove that the provider supplies the external
-HTTPS host/scheme correctly and does not permit browser headers to override it.
-
-Client-subject rate limiting is intentionally not derived yet. It requires a
-provider guarantee that a documented client-IP header is overwritten by trusted
-ingress. Once selected, add a coordinated AURA and website change that
-canonicalizes the address, computes a server-only HMAC digest, forwards only the
-opaque digest, and never stores or logs the raw address.
+seen by Next.js. Direct Vercel runtime is verified using `VERCEL=1` and
+`VERCEL_ENV`. The BFF reads only `x-vercel-forwarded-for`, canonicalizes one
+address, and forwards only a server-keyed HMAC digest. A proxy or CDN in front
+of Vercel invalidates this contract until re-audited.
 
 ## TLS, CSP, and monitoring
 

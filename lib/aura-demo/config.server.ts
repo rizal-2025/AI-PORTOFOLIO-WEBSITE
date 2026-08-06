@@ -4,7 +4,7 @@ export type AuraDemoConfig = Readonly<{
   serviceToken: string;
   sessionCookieName: string;
   timeoutMs: number;
-  trustedIngressMode: "development" | "railway";
+  trustedIngressMode: "development" | "vercel";
 }>;
 
 export type AuraDemoCookieConfig = Readonly<{
@@ -17,7 +17,8 @@ const MIN_TIMEOUT_MS = 1_000;
 const MAX_TIMEOUT_MS = 30_000;
 const MIN_SERVICE_TOKEN_LENGTH = 32;
 const MAX_SERVICE_TOKEN_LENGTH = 512;
-const RAILWAY_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const KOYEB_HOST_PATTERN =
+  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+koyeb\.app$/;
 const CONTROL_CHARACTER_PATTERN = /\p{C}/u;
 const SERVICE_TOKEN_PLACEHOLDER_PATTERNS = [
   /CHANGE[_-]?ME/i,
@@ -41,17 +42,16 @@ function invalidConfig(): never {
 
 function parseTrustedIngressMode(
   rawValue: string | undefined,
-): "development" | "railway" {
+): "development" | "vercel" {
   if (rawValue === "development" && process.env.NODE_ENV !== "production") {
     return rawValue;
   }
   if (
-    rawValue === "railway" &&
+    rawValue === "vercel" &&
     process.env.NODE_ENV === "production" &&
-    process.env.AURA_RAILWAY_IP_HEADER_VERIFIED === "true" &&
-    process.env.RAILWAY_SERVICE_NAME === "portfolio-web" &&
-    RAILWAY_ID_PATTERN.test(process.env.RAILWAY_ENVIRONMENT_ID ?? "") &&
-    RAILWAY_ID_PATTERN.test(process.env.RAILWAY_SERVICE_ID ?? "")
+    process.env.VERCEL === "1" &&
+    (process.env.VERCEL_ENV === "preview" ||
+      process.env.VERCEL_ENV === "production")
   ) {
     return rawValue;
   }
@@ -60,7 +60,7 @@ function parseTrustedIngressMode(
 
 function parseBaseUrl(
   rawValue: string | undefined,
-  trustedIngressMode: "development" | "railway",
+  trustedIngressMode: "development" | "vercel",
 ): string {
   if (typeof rawValue !== "string" || rawValue.trim() === "") {
     return invalidConfig();
@@ -83,18 +83,26 @@ function parseBaseUrl(
   ) {
     return invalidConfig();
   }
-  if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
-    const railwayPrivateHttp =
-      trustedIngressMode === "railway" &&
-      parsed.protocol === "http:" &&
-      parsed.hostname === "aura-api.railway.internal" &&
-      parsed.port !== "";
-    if (!railwayPrivateHttp) {
-      return invalidConfig();
-    }
+  if (
+    process.env.NODE_ENV === "production" &&
+    (trustedIngressMode !== "vercel" ||
+      parsed.protocol !== "https:" ||
+      parsed.port !== "" ||
+      !KOYEB_HOST_PATTERN.test(parsed.hostname))
+  ) {
+    return invalidConfig();
   }
 
   return parsed.origin;
+}
+
+function configuredBaseUrl(): string | undefined {
+  const current = process.env.AURA_SERVER_BASE_URL;
+  const legacy = process.env.AURA_INTERNAL_BASE_URL;
+  if (current !== undefined && legacy !== undefined) {
+    return invalidConfig();
+  }
+  return current ?? legacy;
 }
 
 function isTriviallyRepeated(value: string): boolean {
@@ -164,7 +172,7 @@ export function getAuraDemoConfig(
   );
   return Object.freeze({
     baseUrl: parseBaseUrl(
-      process.env.AURA_INTERNAL_BASE_URL,
+      configuredBaseUrl(),
       trustedIngressMode,
     ),
     clientSubjectHmacKey: parseServiceToken(

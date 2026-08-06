@@ -10,16 +10,15 @@ import {
 
 const cookie = { sessionCookieName: "aura_demo_session" } as const;
 const variableNames = [
+  "AURA_SERVER_BASE_URL",
   "AURA_INTERNAL_BASE_URL",
   "AURA_CLIENT_SUBJECT_HMAC_KEY",
   "AURA_DEMO_SERVICE_TOKEN",
   "AURA_BFF_TIMEOUT_MS",
   "AURA_TRUSTED_INGRESS_MODE",
-  "AURA_RAILWAY_IP_HEADER_VERIFIED",
   "NODE_ENV",
-  "RAILWAY_ENVIRONMENT_ID",
-  "RAILWAY_SERVICE_ID",
-  "RAILWAY_SERVICE_NAME",
+  "VERCEL",
+  "VERCEL_ENV",
 ] as const;
 
 function preserveEnvironment(t: test.TestContext): void {
@@ -33,7 +32,8 @@ function preserveEnvironment(t: test.TestContext): void {
 }
 
 function validEnvironment(): void {
-  process.env.AURA_INTERNAL_BASE_URL = "https://aura.internal";
+  process.env.AURA_SERVER_BASE_URL = "https://aura.internal";
+  delete process.env.AURA_INTERNAL_BASE_URL;
   process.env.AURA_CLIENT_SUBJECT_HMAC_KEY =
     "deployment-test-client-subject-hmac-key";
   process.env.AURA_DEMO_SERVICE_TOKEN = "deployment-test-service-token-value";
@@ -41,16 +41,12 @@ function validEnvironment(): void {
   process.env.AURA_TRUSTED_INGRESS_MODE = "development";
 }
 
-function validRailwayEnvironment(): void {
+function validVercelEnvironment(): void {
   validEnvironment();
   Reflect.set(process.env, "NODE_ENV", "production");
-  process.env.AURA_TRUSTED_INGRESS_MODE = "railway";
-  process.env.AURA_RAILWAY_IP_HEADER_VERIFIED = "true";
-  process.env.RAILWAY_ENVIRONMENT_ID =
-    "123e4567-e89b-42d3-a456-426614174000";
-  process.env.RAILWAY_SERVICE_ID =
-    "123e4567-e89b-42d3-a456-426614174001";
-  process.env.RAILWAY_SERVICE_NAME = "portfolio-web";
+  process.env.AURA_TRUSTED_INGRESS_MODE = "vercel";
+  process.env.VERCEL = "1";
+  process.env.VERCEL_ENV = "preview";
 }
 
 test("website health response is fixed and never cached", () => {
@@ -59,59 +55,68 @@ test("website health response is fixed and never cached", () => {
   assert.equal(response.headers.get("Cache-Control"), "no-store");
 });
 
-test("production BFF permits only exact Railway private HTTP", (t) => {
+test("production BFF permits only a pathless Koyeb HTTPS origin", (t) => {
   preserveEnvironment(t);
-  validRailwayEnvironment();
-  process.env.AURA_INTERNAL_BASE_URL = "http://aura.internal";
-  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
-  process.env.AURA_INTERNAL_BASE_URL = "http://aura-api.railway.internal:8000";
+  validVercelEnvironment();
+  process.env.AURA_SERVER_BASE_URL =
+    "https://aura-api-example-123.koyeb.app";
   assert.equal(
     getAuraDemoConfig(cookie).baseUrl,
-    "http://aura-api.railway.internal:8000",
+    "https://aura-api-example-123.koyeb.app",
   );
   for (const invalid of [
-    "http://railway.internal:8000",
-    "http://aura-api.railway.internal",
-    "http://aura-api.railway.internal:8000/path",
-    "http://other.railway.internal:8000",
-    "http://attacker.example:8000",
+    "http://aura-api-example-123.koyeb.app",
+    "https://attacker.example",
+    "https://aura-api-example-123.koyeb.app:8443",
+    "https://aura-api-example-123.koyeb.app/path",
+    "https://aura-api-example-123.koyeb.app?debug=1",
+    "https://user:password@aura-api-example-123.koyeb.app",
+    "https://localhost",
+    "https://127.0.0.1",
   ]) {
-    process.env.AURA_INTERNAL_BASE_URL = invalid;
+    process.env.AURA_SERVER_BASE_URL = invalid;
     assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
   }
 });
 
-test("Railway web config is single-replica, health-checked, and migration-free", () => {
-  const configText = readFileSync(
-    "deploy/railway/portfolio-web.toml",
-    "utf8",
-  );
-  assert.match(configText, /builder = "DOCKERFILE"/);
-  assert.match(configText, /startCommand = "node server\.js"/);
-  assert.match(configText, /numReplicas = 1/);
-  assert.match(configText, /healthcheckPath = "\/api\/health"/);
-  assert.doesNotMatch(configText, /migrat/i);
-
-  const dockerfile = readFileSync("Dockerfile", "utf8");
-  assert.match(dockerfile, /HOSTNAME=::/);
-  assert.match(dockerfile, /process\.env\.PORT/);
+test("Vercel config and BFF route budgets target Frankfurt safely", () => {
+  const config = JSON.parse(readFileSync("vercel.json", "utf8")) as {
+    framework: string;
+    regions: string[];
+  };
+  assert.equal(config.framework, "nextjs");
+  assert.deepEqual(config.regions, ["fra1"]);
+  for (const route of ["session", "chat", "reservations", "reset"]) {
+    const source = readFileSync(`app/api/demo/${route}/route.ts`, "utf8");
+    assert.match(source, /preferredRegion = "fra1"/);
+    assert.match(source, /maxDuration = 60/);
+  }
 });
 
-test("Railway trust mode fails closed without verified runtime", (t) => {
+test("Vercel trust mode fails closed without verified runtime", (t) => {
   preserveEnvironment(t);
-  validRailwayEnvironment();
-  process.env.AURA_INTERNAL_BASE_URL = "http://aura-api.railway.internal:8000";
-  for (const name of [
-    "AURA_RAILWAY_IP_HEADER_VERIFIED",
-    "RAILWAY_ENVIRONMENT_ID",
-    "RAILWAY_SERVICE_ID",
-    "RAILWAY_SERVICE_NAME",
-  ] as const) {
+  validVercelEnvironment();
+  process.env.AURA_SERVER_BASE_URL =
+    "https://aura-api-example-123.koyeb.app";
+  for (const name of ["VERCEL", "VERCEL_ENV"] as const) {
     const value = process.env[name];
     delete process.env[name];
     assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
     if (value !== undefined) process.env[name] = value;
   }
+  process.env.VERCEL_ENV = "development";
+  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+});
+
+test("legacy base URL has an unambiguous migration path", (t) => {
+  preserveEnvironment(t);
+  validEnvironment();
+  const current = process.env.AURA_SERVER_BASE_URL;
+  delete process.env.AURA_SERVER_BASE_URL;
+  process.env.AURA_INTERNAL_BASE_URL = current;
+  assert.equal(getAuraDemoConfig(cookie).baseUrl, "https://aura.internal");
+  process.env.AURA_SERVER_BASE_URL = current;
+  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
 });
 
 test("service credential validation matches the hardened server boundary", (t) => {

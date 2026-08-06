@@ -10,9 +10,8 @@ import {
 
 const cookie = { sessionCookieName: "aura_demo_session" } as const;
 const variableNames = [
+  "AURA_BACKEND_MODE",
   "AURA_SERVER_BASE_URL",
-  "AURA_CF_ACCESS_CLIENT_ID",
-  "AURA_CF_ACCESS_CLIENT_SECRET",
   "AURA_CLIENT_SUBJECT_HMAC_KEY",
   "AURA_DEMO_SERVICE_TOKEN",
   "AURA_BFF_TIMEOUT_MS",
@@ -33,11 +32,8 @@ function preserveEnvironment(t: test.TestContext): void {
 }
 
 function validEnvironment(): void {
-  process.env.AURA_SERVER_BASE_URL = "https://aura.internal";
-  process.env.AURA_CF_ACCESS_CLIENT_ID =
-    "synthetic-cloudflare-client-id.access";
-  process.env.AURA_CF_ACCESS_CLIENT_SECRET =
-    "synthetic-cloudflare-client-secret-value";
+  process.env.AURA_BACKEND_MODE = "tailscale-funnel";
+  process.env.AURA_SERVER_BASE_URL = "http://127.0.0.1:8000";
   process.env.AURA_CLIENT_SUBJECT_HMAC_KEY =
     "deployment-test-client-subject-hmac-key";
   process.env.AURA_DEMO_SERVICE_TOKEN = "deployment-test-service-token-value";
@@ -46,7 +42,9 @@ function validEnvironment(): void {
   Reflect.set(process.env, "NODE_ENV", "test");
 }
 
-function validVercelEnvironment(environment: "preview" | "production" = "preview"): void {
+function validVercelEnvironment(
+  environment: "preview" | "production" = "preview",
+): void {
   validEnvironment();
   Reflect.set(process.env, "NODE_ENV", "production");
   process.env.AURA_TRUSTED_INGRESS_MODE = "vercel";
@@ -54,8 +52,8 @@ function validVercelEnvironment(environment: "preview" | "production" = "preview
   process.env.VERCEL_ENV = environment;
   process.env.AURA_SERVER_BASE_URL =
     environment === "preview"
-      ? "https://aura-staging.portfolio-demo.dev"
-      : "https://aura-api.portfolio-demo.dev";
+      ? "https://aura-demo-node.synthetic-tailnet.ts.net:8443"
+      : "https://aura-demo-node.synthetic-tailnet.ts.net";
 }
 
 test("website health response is fixed and never cached", () => {
@@ -64,24 +62,25 @@ test("website health response is fixed and never cached", () => {
   assert.equal(response.headers.get("Cache-Control"), "no-store");
 });
 
-test("production BFF permits only the matching pathless Cloudflare hostname", (t) => {
+test("production BFF permits only a pathless HTTPS Funnel origin on the profile port", (t) => {
   preserveEnvironment(t);
   validVercelEnvironment();
   assert.equal(
     getAuraDemoConfig(cookie).baseUrl,
-    "https://aura-staging.portfolio-demo.dev",
+    "https://aura-demo-node.synthetic-tailnet.ts.net:8443",
   );
   for (const invalid of [
-    "http://aura-staging.portfolio-demo.dev",
-    "https://aura-api.portfolio-demo.dev",
-    "https://aura-staging.portfolio-demo.dev:8443",
-    "https://aura-staging.portfolio-demo.dev/path",
-    "https://aura-staging.portfolio-demo.dev?debug=1",
-    "https://user:password@aura-staging.portfolio-demo.dev",
-    "https://aura-staging.trycloudflare.com",
-    "https://aura-staging.example.koyeb.app",
-    "https://localhost",
-    "https://127.0.0.1",
+    "http://aura-demo-node.synthetic-tailnet.ts.net:8443",
+    "https://aura-demo-node.synthetic-tailnet.ts.net",
+    "https://aura-demo-node.synthetic-tailnet.ts.net:443",
+    "https://aura-demo-node.synthetic-tailnet.ts.net:8443/path",
+    "https://aura-demo-node.synthetic-tailnet.ts.net:8443?debug=1",
+    "https://user:password@aura-demo-node.synthetic-tailnet.ts.net:8443",
+    "https://synthetic-tailnet.ts.net:8443",
+    "https://a.b.c.ts.net:8443",
+    "https://example.com:8443",
+    "https://localhost:8443",
+    "https://127.0.0.1:8443",
   ]) {
     process.env.AURA_SERVER_BASE_URL = invalid;
     assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
@@ -89,8 +88,25 @@ test("production BFF permits only the matching pathless Cloudflare hostname", (t
   validVercelEnvironment("production");
   assert.equal(
     getAuraDemoConfig(cookie).baseUrl,
-    "https://aura-api.portfolio-demo.dev",
+    "https://aura-demo-node.synthetic-tailnet.ts.net",
   );
+  process.env.AURA_SERVER_BASE_URL =
+    "https://aura-demo-node.synthetic-tailnet.ts.net:8443";
+  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+});
+
+test("development backend origins are loopback-only", (t) => {
+  preserveEnvironment(t);
+  validEnvironment();
+  assert.equal(getAuraDemoConfig(cookie).baseUrl, "http://127.0.0.1:8000");
+  for (const invalid of [
+    "http://aura.internal:8000",
+    "http://192.0.2.1:8000",
+    "http://localhost:9000",
+  ]) {
+    process.env.AURA_SERVER_BASE_URL = invalid;
+    assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+  }
 });
 
 test("Vercel config and BFF route budgets target Frankfurt safely", () => {
@@ -120,12 +136,15 @@ test("Vercel trust mode fails closed without verified runtime", (t) => {
   assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
 });
 
-test("every server credential is mandatory and strictly validated", (t) => {
+test("backend mode and every server credential are mandatory", (t) => {
   preserveEnvironment(t);
   validEnvironment();
+  delete process.env.AURA_BACKEND_MODE;
+  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+  process.env.AURA_BACKEND_MODE = "direct";
+  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+  process.env.AURA_BACKEND_MODE = "tailscale-funnel";
   for (const name of [
-    "AURA_CF_ACCESS_CLIENT_ID",
-    "AURA_CF_ACCESS_CLIENT_SECRET",
     "AURA_DEMO_SERVICE_TOKEN",
     "AURA_CLIENT_SUBJECT_HMAC_KEY",
   ] as const) {
@@ -139,9 +158,9 @@ test("every server credential is mandatory and strictly validated", (t) => {
   }
 });
 
-test("superseded Koyeb deployment assets are absent", () => {
+test("superseded provider assets and legacy base URL logic are absent", () => {
   assert.equal(existsSync("docs/vercel-koyeb-deployment.md"), false);
   const source = readFileSync("lib/aura-demo/config.server.ts", "utf8");
-  assert.doesNotMatch(source, /KOYEB_HOST_PATTERN/);
   assert.doesNotMatch(source, /AURA_INTERNAL_BASE_URL/);
+  assert.match(source, /AURA_BACKEND_MODE/);
 });

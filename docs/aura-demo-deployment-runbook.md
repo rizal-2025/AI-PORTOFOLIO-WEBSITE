@@ -1,46 +1,38 @@
 # AURA website deployment runbook
 
-Vercel hosts the public Next.js website and BFF. The BFF reaches the Windows
-AURA origin through a named Cloudflare Tunnel protected by Access Service Auth.
-Browser code calls only same-origin `/api/demo/*` routes and receives none of
-the origin or credential values.
+Vercel hosts the public Next.js website and BFF. The BFF reaches a manually
+enabled public Tailscale Funnel, which forwards to the dedicated loopback-only
+AURA gateway. Browser code calls only same-origin `/api/demo/*` and receives no
+origin or credential values.
 
-Preview requires a pathless HTTPS hostname beginning `aura-staging.`;
-Production requires one beginning `aura-api.`. Localhost, IP literals,
-Quick-Tunnel hostnames, Cloudflare tunnel endpoints, Vercel hostnames, ports,
-paths, credentials, queries, and fragments fail closed. Direct Vercel runtime
-is verified using `VERCEL=1` and `VERCEL_ENV=preview|production`.
+Preview uses the stable `*.ts.net` origin on HTTPS 8443. Production uses the
+same hostname on default HTTPS 443. Paths, credentials, queries, fragments,
+non-Tailscale hosts, incorrect ports, and localhost in production fail closed.
+Direct Vercel runtime is verified with `VERCEL=1` and
+`VERCEL_ENV=preview|production`.
 
 Configure these server-only variables separately in Vercel Preview and
 Production. None may use `NEXT_PUBLIC_`:
 
-- `AURA_SERVER_BASE_URL`;
-- `AURA_CF_ACCESS_CLIENT_ID`;
-- `AURA_CF_ACCESS_CLIENT_SECRET`;
-- `AURA_DEMO_SERVICE_TOKEN`;
-- `AURA_CLIENT_SUBJECT_HMAC_KEY`;
-- `AURA_DEMO_SESSION_COOKIE`;
-- `AURA_BFF_TIMEOUT_MS`;
-- `AURA_TRUSTED_INGRESS_MODE`.
+- `AURA_SERVER_BASE_URL`
+- `AURA_DEMO_SERVICE_TOKEN`
+- `AURA_CLIENT_SUBJECT_HMAC_KEY`
+- `AURA_DEMO_SESSION_COOKIE`
+- `AURA_BFF_TIMEOUT_MS`
+- `AURA_TRUSTED_INGRESS_MODE`
+- `AURA_BACKEND_MODE`
 
-Every upstream request sends the matching Cloudflare credential pair, the
-matching AURA service token, and only the route-scoped session/client-subject
-headers. Fetch uses `no-store`, redirect rejection, one overall deadline,
-bounded response bytes, strict JSON content type, fatal UTF-8, and strict DTOs.
-No mutation is automatically retried. Access denial HTML, redirect, laptop
-offline, tunnel offline, DNS failure, or connection failure maps to the fixed
-public `503 SERVICE_UNAVAILABLE` envelope without upstream content or names.
+Set `AURA_TRUSTED_INGRESS_MODE=vercel` and
+`AURA_BACKEND_MODE=tailscale-funnel`. Every upstream request sends only the
+matching AURA service token and route-scoped session/client-subject headers.
+Fetch rejects redirects, uses `no-store`, one deadline, bounded response bytes,
+strict content type and DTOs, and no mutation retry. Non-JSON Funnel/proxy
+errors and offline failures map to fixed safe public errors.
 
-The BFF derives client identity before calling Cloudflare. It accepts only
-Vercel's `x-vercel-forwarded-for`, rejects chains and malformed addresses,
-canonicalizes IPv4/IPv6, and forwards only a lowercase HMAC-SHA-256 digest. It
-ignores browser `x-forwarded-for`, `x-real-ip`, and Cloudflare headers.
+Funnel is public. The application does not trust tailnet identity, ACLs, source
+IP, or CORS for authorization. Deploy Preview only after the Tailscale account,
+local secret, database, and Windows gates. Public Production traffic remains
+blocked until explicit go-live approval.
 
-Deploy Preview only after the Cloudflare, local secret, local database, and
-Windows installation gates. Production must use distinct hostname, Access
-token, AURA token, HMAC key, JWT secret, cookie name, database, and provider
-credential. Public domain activation remains blocked until explicit go-live
-approval.
-
-See `vercel-cloudflare-deployment.md` for setup, rotation, tests, offline
-behavior, and rollback.
+See `vercel-tailscale-funnel-deployment.md` for the port fallback decision,
+rotation boundaries, failure behavior, and rollback.

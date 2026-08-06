@@ -8,9 +8,8 @@ import {
 } from "@/lib/aura-demo/client-subject.server";
 
 const baseConfig = {
-  baseUrl: "https://aura.internal",
-  cfAccessClientId: "synthetic-cloudflare-client-id.access",
-  cfAccessClientSecret: "synthetic-cloudflare-client-secret",
+  backendMode: "tailscale-funnel",
+  baseUrl: "http://127.0.0.1:8000",
   clientSubjectHmacKey: "synthetic-client-subject-hmac-key-for-tests",
   serviceToken: "synthetic-service-token-for-tests",
   sessionCookieName: "aura_demo",

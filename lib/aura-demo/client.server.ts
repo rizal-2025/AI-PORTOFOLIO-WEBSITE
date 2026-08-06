@@ -543,8 +543,6 @@ export async function createAuraDemoSession(
     config,
     CREATE_SESSION_PATH,
     {
-      "CF-Access-Client-Id": config.cfAccessClientId,
-      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
     },
@@ -574,8 +572,6 @@ export async function getCurrentAuraDemoSession(
     config,
     CURRENT_SESSION_PATH,
     {
-      "CF-Access-Client-Id": config.cfAccessClientId,
-      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -608,8 +604,6 @@ export async function postAuraDemoChat(
     CHAT_PATH,
     {
       "Content-Type": "application/json",
-      "CF-Access-Client-Id": config.cfAccessClientId,
-      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -646,8 +640,6 @@ export async function getAuraDemoReservations(
     config,
     RESERVATIONS_PATH,
     {
-      "CF-Access-Client-Id": config.cfAccessClientId,
-      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -677,8 +669,6 @@ export async function resetAuraDemo(
     config,
     RESET_PATH,
     {
-      "CF-Access-Client-Id": config.cfAccessClientId,
-      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,

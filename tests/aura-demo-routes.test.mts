@@ -22,10 +22,8 @@ const reference = "RSV_0123456789abcdef0123456789abcdef";
 const timestamp = "2026-08-05T10:00:00Z";
 const absolute = "2099-08-06T10:00:00Z";
 
-process.env.AURA_SERVER_BASE_URL = "https://aura.internal";
-process.env.AURA_CF_ACCESS_CLIENT_ID = "synthetic-cloudflare-client-id.access";
-process.env.AURA_CF_ACCESS_CLIENT_SECRET =
-  "synthetic-cloudflare-client-secret-for-route-tests";
+process.env.AURA_SERVER_BASE_URL = "http://127.0.0.1:8000";
+process.env.AURA_BACKEND_MODE = "tailscale-funnel";
 process.env.AURA_DEMO_SERVICE_TOKEN = "synthetic-service-token-for-route-tests";
 process.env.AURA_CLIENT_SUBJECT_HMAC_KEY =
   "synthetic-client-subject-hmac-key-for-route-tests";
@@ -80,14 +78,6 @@ test.before(() => {
     assert.equal(
       headers.get("X-BFF-Service-Token"),
       "synthetic-service-token-for-route-tests",
-    );
-    assert.equal(
-      headers.get("CF-Access-Client-Id"),
-      "synthetic-cloudflare-client-id.access",
-    );
-    assert.equal(
-      headers.get("CF-Access-Client-Secret"),
-      "synthetic-cloudflare-client-secret-for-route-tests",
     );
     assert.match(headers.get("X-Demo-Client-Subject") ?? "", /^[0-9a-f]{64}$/);
     const scoped = url.pathname !== "/internal/demo/sessions";

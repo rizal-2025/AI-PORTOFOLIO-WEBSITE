@@ -30,6 +30,8 @@ import { isValidAuraSessionToken } from "@/lib/aura-demo/token.server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+export const preferredRegion = "fra1";
+export const maxDuration = 60;
 
 async function createSessionResponse(
   config: AuraDemoConfig,

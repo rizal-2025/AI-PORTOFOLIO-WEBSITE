@@ -41,7 +41,16 @@ export function canonicalizeClientIp(rawValue: string): string {
       if (!hostname.startsWith("[") || !hostname.endsWith("]")) {
         return invalidSubject();
       }
-      return hostname.slice(1, -1);
+      const canonical = hostname.slice(1, -1);
+      const mapped = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(
+        canonical,
+      );
+      if (mapped !== null) {
+        const high = Number.parseInt(mapped[1], 16);
+        const low = Number.parseInt(mapped[2], 16);
+        return [high >> 8, high & 0xff, low >> 8, low & 0xff].join(".");
+      }
+      return canonical;
     } catch {
       return invalidSubject();
     }
@@ -61,12 +70,12 @@ export function deriveAuraClientSubject(
     return opaqueSubject(DEVELOPMENT_SUBJECT, config.clientSubjectHmacKey);
   }
 
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp === null) {
+  const vercelClientIp = request.headers.get("x-vercel-forwarded-for");
+  if (vercelClientIp === null) {
     return invalidSubject();
   }
   return opaqueSubject(
-    `aura:demo-client:ip:v1:${canonicalizeClientIp(realIp)}`,
+    `aura:demo-client:ip:v1:${canonicalizeClientIp(vercelClientIp)}`,
     config.clientSubjectHmacKey,
   );
 }

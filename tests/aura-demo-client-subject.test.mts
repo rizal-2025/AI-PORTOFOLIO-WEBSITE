@@ -27,25 +27,30 @@ test("IPv4 and IPv6 inputs are canonicalized exactly", () => {
   );
   assert.equal(
     canonicalizeClientIp("::ffff:192.0.2.1"),
-    "::ffff:c000:201",
+    "192.0.2.1",
   );
+  assert.equal(canonicalizeClientIp("::ffff:c000:201"), "192.0.2.1");
 });
 
-test("Railway subject HMAC is stable, opaque, and ignores forwarding chains", () => {
-  const config = { ...baseConfig, trustedIngressMode: "railway" } as const;
+test("Vercel subject HMAC is stable, opaque, and ignores spoofable headers", () => {
+  const config = { ...baseConfig, trustedIngressMode: "vercel" } as const;
   const first = deriveAuraClientSubject(
-    request({ "x-real-ip": "2001:db8::1", "x-forwarded-for": "198.51.100.9" }),
+    request({
+      "x-vercel-forwarded-for": "2001:db8::1",
+      "x-forwarded-for": "198.51.100.9",
+      "x-real-ip": "198.51.100.10",
+    }),
     config,
   );
   const canonicalEquivalent = deriveAuraClientSubject(
     request({
-      "x-real-ip": "2001:0db8:0:0:0:0:0:1",
+      "x-vercel-forwarded-for": "2001:0db8:0:0:0:0:0:1",
       "x-forwarded-for": "192.0.2.44, 192.0.2.45",
     }),
     config,
   );
   const different = deriveAuraClientSubject(
-    request({ "x-real-ip": "2001:db8::2" }),
+    request({ "x-vercel-forwarded-for": "2001:db8::2" }),
     config,
   );
   assert.match(first, /^[0-9a-f]{64}$/);
@@ -61,6 +66,7 @@ test("development mode ignores every browser forwarding header", () => {
     request({
       "x-real-ip": "203.0.113.250",
       "x-forwarded-for": "198.51.100.1",
+      "x-vercel-forwarded-for": "192.0.2.1",
     }),
     config,
   );
@@ -68,14 +74,14 @@ test("development mode ignores every browser forwarding header", () => {
   assert.match(plain, /^[0-9a-f]{64}$/);
 });
 
-test("missing, chained, wrapped, zoned, and malformed Railway IPs fail closed", () => {
-  const config = { ...baseConfig, trustedIngressMode: "railway" } as const;
+test("missing, chained, wrapped, zoned, and malformed Vercel IPs fail closed", () => {
+  const config = { ...baseConfig, trustedIngressMode: "vercel" } as const;
   const invalidHeaders: Record<string, string>[] = [
     {},
-    { "x-real-ip": "203.0.113.7, 198.51.100.2" },
-    { "x-real-ip": "[2001:db8::1]" },
-    { "x-real-ip": "fe80::1%eth0" },
-    { "x-real-ip": "not-an-address" },
+    { "x-vercel-forwarded-for": "203.0.113.7, 198.51.100.2" },
+    { "x-vercel-forwarded-for": "[2001:db8::1]" },
+    { "x-vercel-forwarded-for": "fe80::1%eth0" },
+    { "x-vercel-forwarded-for": "not-an-address" },
   ];
   for (const headers of invalidHeaders) {
     assert.throws(

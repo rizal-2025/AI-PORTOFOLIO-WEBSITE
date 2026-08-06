@@ -79,6 +79,8 @@ const REQUEST_CONFLICT_DETAILS = new Map([
 ]);
 const ERROR_ENVELOPE_KEYS = ["code", "detail"] as const;
 const JSON_PROPERTY_PATTERN = /"((?:\\.|[^"\\])*)"\s*:/g;
+const JSON_CONTENT_TYPE_PATTERN =
+  /^application\/json(?:\s*;\s*charset=utf-8)?$/i;
 
 function rateLimitHeaders(headers: Headers): SafeRateLimitHeaders {
   const safeHeaders: SafeRateLimitHeaders = {};
@@ -223,6 +225,16 @@ async function readBoundedJson(
   const responseBody = response.body;
   if (responseBody === null) {
     throw new AuraDemoClientError("invalid-response");
+  }
+  const contentType = response.headers.get("content-type");
+  if (contentType === null || !JSON_CONTENT_TYPE_PATTERN.test(contentType)) {
+    await waitForCancellation(observeCancellation(() => responseBody.cancel()));
+    context.throwIfExpired();
+    throw new AuraDemoClientError(
+      contentType?.toLowerCase().startsWith("text/html")
+        ? "unavailable"
+        : "invalid-response",
+    );
   }
   if (contentLengthExceedsLimit(response.headers.get("content-length"))) {
     await waitForCancellation(
@@ -455,6 +467,10 @@ async function throwForFailure(
     providerTimeout?: boolean;
   }> = {},
 ): Promise<never> {
+  if (response.status === 403) {
+    await discardResponseBody(response, context);
+    throw new AuraDemoClientError("unavailable");
+  }
   if (response.status === 429) {
     const document = await readFailureDocument(
       response,
@@ -527,6 +543,8 @@ export async function createAuraDemoSession(
     config,
     CREATE_SESSION_PATH,
     {
+      "CF-Access-Client-Id": config.cfAccessClientId,
+      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
     },
@@ -556,6 +574,8 @@ export async function getCurrentAuraDemoSession(
     config,
     CURRENT_SESSION_PATH,
     {
+      "CF-Access-Client-Id": config.cfAccessClientId,
+      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -588,6 +608,8 @@ export async function postAuraDemoChat(
     CHAT_PATH,
     {
       "Content-Type": "application/json",
+      "CF-Access-Client-Id": config.cfAccessClientId,
+      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -624,6 +646,8 @@ export async function getAuraDemoReservations(
     config,
     RESERVATIONS_PATH,
     {
+      "CF-Access-Client-Id": config.cfAccessClientId,
+      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
@@ -653,6 +677,8 @@ export async function resetAuraDemo(
     config,
     RESET_PATH,
     {
+      "CF-Access-Client-Id": config.cfAccessClientId,
+      "CF-Access-Client-Secret": config.cfAccessClientSecret,
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,

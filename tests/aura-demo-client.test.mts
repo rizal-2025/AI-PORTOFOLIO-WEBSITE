@@ -9,6 +9,8 @@ import {
 
 const config = {
   baseUrl: "https://aura.internal",
+  cfAccessClientId: "synthetic-cloudflare-client-id.access",
+  cfAccessClientSecret: "synthetic-cloudflare-client-secret",
   clientSubjectHmacKey: "synthetic-client-subject-key",
   serviceToken: "synthetic-service-token",
   sessionCookieName: "aura_demo",
@@ -48,6 +50,11 @@ test("chat client sends server-only headers once and strips internal reply ID", 
     assert.equal(String(input), "https://aura.internal/internal/demo/chat");
     assert.equal(init?.method, "POST");
     const headers = new Headers(init?.headers);
+    assert.equal(headers.get("CF-Access-Client-Id"), config.cfAccessClientId);
+    assert.equal(
+      headers.get("CF-Access-Client-Secret"),
+      config.cfAccessClientSecret,
+    );
     assert.equal(headers.get("X-BFF-Service-Token"), config.serviceToken);
     assert.equal(headers.get("X-Demo-Client-Subject"), clientSubject);
     assert.equal(headers.get("X-Demo-Session-Token"), sessionToken);
@@ -202,5 +209,35 @@ test("one overall deadline aborts the request without retry", async () => {
     );
     assert.equal(calls, 1);
     assert.equal(aborted, true);
+  });
+});
+
+test("Access denial HTML and an offline tunnel map to unavailable without retry", async () => {
+  let calls = 0;
+  await withFetch(async () => {
+    calls += 1;
+    return new Response("<html>Access denied</html>", {
+      status: 403,
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  }, async () => {
+    await assert.rejects(
+      () => getAuraDemoReservations(config, sessionToken, clientSubject),
+      (error) =>
+        error instanceof AuraDemoClientError && error.kind === "unavailable",
+    );
+    assert.equal(calls, 1);
+  });
+
+  await withFetch(async () => {
+    calls += 1;
+    throw new TypeError("synthetic network failure");
+  }, async () => {
+    await assert.rejects(
+      () => getAuraDemoReservations(config, sessionToken, clientSubject),
+      (error) =>
+        error instanceof AuraDemoClientError && error.kind === "unavailable",
+    );
+    assert.equal(calls, 2);
   });
 });

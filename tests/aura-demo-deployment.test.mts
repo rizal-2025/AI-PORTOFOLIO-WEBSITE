@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 
 import { GET as health } from "@/app/api/health/route";
@@ -11,7 +11,8 @@ import {
 const cookie = { sessionCookieName: "aura_demo_session" } as const;
 const variableNames = [
   "AURA_SERVER_BASE_URL",
-  "AURA_INTERNAL_BASE_URL",
+  "AURA_CF_ACCESS_CLIENT_ID",
+  "AURA_CF_ACCESS_CLIENT_SECRET",
   "AURA_CLIENT_SUBJECT_HMAC_KEY",
   "AURA_DEMO_SERVICE_TOKEN",
   "AURA_BFF_TIMEOUT_MS",
@@ -33,20 +34,28 @@ function preserveEnvironment(t: test.TestContext): void {
 
 function validEnvironment(): void {
   process.env.AURA_SERVER_BASE_URL = "https://aura.internal";
-  delete process.env.AURA_INTERNAL_BASE_URL;
+  process.env.AURA_CF_ACCESS_CLIENT_ID =
+    "synthetic-cloudflare-client-id.access";
+  process.env.AURA_CF_ACCESS_CLIENT_SECRET =
+    "synthetic-cloudflare-client-secret-value";
   process.env.AURA_CLIENT_SUBJECT_HMAC_KEY =
     "deployment-test-client-subject-hmac-key";
   process.env.AURA_DEMO_SERVICE_TOKEN = "deployment-test-service-token-value";
   process.env.AURA_BFF_TIMEOUT_MS = "30000";
   process.env.AURA_TRUSTED_INGRESS_MODE = "development";
+  Reflect.set(process.env, "NODE_ENV", "test");
 }
 
-function validVercelEnvironment(): void {
+function validVercelEnvironment(environment: "preview" | "production" = "preview"): void {
   validEnvironment();
   Reflect.set(process.env, "NODE_ENV", "production");
   process.env.AURA_TRUSTED_INGRESS_MODE = "vercel";
   process.env.VERCEL = "1";
-  process.env.VERCEL_ENV = "preview";
+  process.env.VERCEL_ENV = environment;
+  process.env.AURA_SERVER_BASE_URL =
+    environment === "preview"
+      ? "https://aura-staging.portfolio-demo.dev"
+      : "https://aura-api.portfolio-demo.dev";
 }
 
 test("website health response is fixed and never cached", () => {
@@ -55,28 +64,33 @@ test("website health response is fixed and never cached", () => {
   assert.equal(response.headers.get("Cache-Control"), "no-store");
 });
 
-test("production BFF permits only a pathless Koyeb HTTPS origin", (t) => {
+test("production BFF permits only the matching pathless Cloudflare hostname", (t) => {
   preserveEnvironment(t);
   validVercelEnvironment();
-  process.env.AURA_SERVER_BASE_URL =
-    "https://aura-api-example-123.koyeb.app";
   assert.equal(
     getAuraDemoConfig(cookie).baseUrl,
-    "https://aura-api-example-123.koyeb.app",
+    "https://aura-staging.portfolio-demo.dev",
   );
   for (const invalid of [
-    "http://aura-api-example-123.koyeb.app",
-    "https://attacker.example",
-    "https://aura-api-example-123.koyeb.app:8443",
-    "https://aura-api-example-123.koyeb.app/path",
-    "https://aura-api-example-123.koyeb.app?debug=1",
-    "https://user:password@aura-api-example-123.koyeb.app",
+    "http://aura-staging.portfolio-demo.dev",
+    "https://aura-api.portfolio-demo.dev",
+    "https://aura-staging.portfolio-demo.dev:8443",
+    "https://aura-staging.portfolio-demo.dev/path",
+    "https://aura-staging.portfolio-demo.dev?debug=1",
+    "https://user:password@aura-staging.portfolio-demo.dev",
+    "https://aura-staging.trycloudflare.com",
+    "https://aura-staging.example.koyeb.app",
     "https://localhost",
     "https://127.0.0.1",
   ]) {
     process.env.AURA_SERVER_BASE_URL = invalid;
     assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
   }
+  validVercelEnvironment("production");
+  assert.equal(
+    getAuraDemoConfig(cookie).baseUrl,
+    "https://aura-api.portfolio-demo.dev",
+  );
 });
 
 test("Vercel config and BFF route budgets target Frankfurt safely", () => {
@@ -96,8 +110,6 @@ test("Vercel config and BFF route budgets target Frankfurt safely", () => {
 test("Vercel trust mode fails closed without verified runtime", (t) => {
   preserveEnvironment(t);
   validVercelEnvironment();
-  process.env.AURA_SERVER_BASE_URL =
-    "https://aura-api-example-123.koyeb.app";
   for (const name of ["VERCEL", "VERCEL_ENV"] as const) {
     const value = process.env[name];
     delete process.env[name];
@@ -108,42 +120,28 @@ test("Vercel trust mode fails closed without verified runtime", (t) => {
   assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
 });
 
-test("legacy base URL has an unambiguous migration path", (t) => {
+test("every server credential is mandatory and strictly validated", (t) => {
   preserveEnvironment(t);
   validEnvironment();
-  const current = process.env.AURA_SERVER_BASE_URL;
-  delete process.env.AURA_SERVER_BASE_URL;
-  process.env.AURA_INTERNAL_BASE_URL = current;
-  assert.equal(getAuraDemoConfig(cookie).baseUrl, "https://aura.internal");
-  process.env.AURA_SERVER_BASE_URL = current;
-  assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
-});
-
-test("service credential validation matches the hardened server boundary", (t) => {
-  preserveEnvironment(t);
-  validEnvironment();
-  for (const invalid of [
-    "short",
-    "x".repeat(32),
-    "CHANGE_ME_service_token_that_is_not_allowed",
-    ` ${"secure-looking-token-value-for-test"}`,
-    "secure-looking-token-value-for-test\n",
-  ]) {
-    process.env.AURA_DEMO_SERVICE_TOKEN = invalid;
-    assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+  for (const name of [
+    "AURA_CF_ACCESS_CLIENT_ID",
+    "AURA_CF_ACCESS_CLIENT_SECRET",
+    "AURA_DEMO_SERVICE_TOKEN",
+    "AURA_CLIENT_SUBJECT_HMAC_KEY",
+  ] as const) {
+    const valid = process.env[name];
+    for (const invalid of [undefined, "short", "x".repeat(32), "CHANGE_ME_secret_value"]) {
+      if (invalid === undefined) delete process.env[name];
+      else process.env[name] = invalid;
+      assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
+    }
+    if (valid !== undefined) process.env[name] = valid;
   }
 });
 
-test("client-subject HMAC key uses the same strict secret policy", (t) => {
-  preserveEnvironment(t);
-  validEnvironment();
-  for (const invalid of [
-    "short",
-    "x".repeat(32),
-    "CHANGE_ME_client_subject_hmac_key_value",
-    ` ${"secure-client-subject-hmac-key-value"}`,
-  ]) {
-    process.env.AURA_CLIENT_SUBJECT_HMAC_KEY = invalid;
-    assert.throws(() => getAuraDemoConfig(cookie), AuraDemoConfigError);
-  }
+test("superseded Koyeb deployment assets are absent", () => {
+  assert.equal(existsSync("docs/vercel-koyeb-deployment.md"), false);
+  const source = readFileSync("lib/aura-demo/config.server.ts", "utf8");
+  assert.doesNotMatch(source, /KOYEB_HOST_PATTERN/);
+  assert.doesNotMatch(source, /AURA_INTERNAL_BASE_URL/);
 });

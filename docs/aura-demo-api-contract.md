@@ -21,7 +21,7 @@ Status saat ini:
 - chat, reservations, dan reset BFF sudah diimplementasikan pada branch
   `feature/aura-demo-bff-complete`;
 - integrasi frontend dan IP/client-subject limiter telah diimplementasikan;
-- konfigurasi Vercel/Koyeb/Neon/GitHub Actions telah disiapkan, sementara akun,
+- konfigurasi Vercel/Cloudflare/Windows self-host telah disiapkan, sementara akun,
   secret, migration, deployment, dan traffic tetap berada di human gate;
 - kontrak Chat BFF telah diaudit dengan keputusan **GO** sebelum implementasi.
 
@@ -758,8 +758,9 @@ Placeholder server-side yang diizinkan:
 
 | Placeholder | Purpose |
 |---|---|
-| `AURA_SERVER_BASE_URL` | Exact Koyeb HTTPS origin yang hanya diketahui BFF. |
-| `AURA_INTERNAL_BASE_URL` | Alias migrasi sementara; tidak boleh diset bersama nama baru. |
+| `AURA_SERVER_BASE_URL` | Exact Cloudflare Access HTTPS origin yang hanya diketahui BFF. |
+| `AURA_CF_ACCESS_CLIENT_ID` | Cloudflare Access Client ID server-only. |
+| `AURA_CF_ACCESS_CLIENT_SECRET` | Cloudflare Access Client Secret server-only. |
 | `AURA_DEMO_SERVICE_TOKEN` | Service credential BFF-ke-AURA. |
 | `AURA_DEMO_SESSION_COOKIE` | Nama cookie HttpOnly. |
 | `AURA_BFF_TIMEOUT_MS` | Batas waktu request BFF-ke-AURA. |
@@ -794,7 +795,7 @@ belum terhubung.
 - update reservation final confirmation masih roadmap;
 - incomplete-marker administrative recovery belum dibuat;
 - browser integration test belum dibuat;
-- trusted Vercel/Koyeb runtime behavior belum diuji saat deployment;
+- trusted Vercel/Cloudflare runtime behavior belum diuji saat deployment;
 - server-only boundary masih didukung convention `.server.ts` dan import graph;
 - scheduler cleanup belum diaktifkan;
 - production deployment dan public traffic belum dijalankan.

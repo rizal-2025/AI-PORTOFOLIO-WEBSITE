@@ -9,6 +9,8 @@ import {
 
 const baseConfig = {
   baseUrl: "https://aura.internal",
+  cfAccessClientId: "synthetic-cloudflare-client-id.access",
+  cfAccessClientSecret: "synthetic-cloudflare-client-secret",
   clientSubjectHmacKey: "synthetic-client-subject-hmac-key-for-tests",
   serviceToken: "synthetic-service-token-for-tests",
   sessionCookieName: "aura_demo",

@@ -46,6 +46,14 @@ test("chat request rejects cross-site, internal headers, extras, and unsafe text
       { message: "aman", requestId },
       { "x-bff-service-token": "browser-controlled" },
     ),
+    chatRequest(
+      { message: "aman", requestId },
+      { "cf-access-client-id": "browser-controlled" },
+    ),
+    chatRequest(
+      { message: "aman", requestId },
+      { "cf-access-client-secret": "browser-controlled" },
+    ),
     chatRequest({ message: "aman", requestId, ownerId: 1 }),
     chatRequest({ message: "unsafe\u0000", requestId }),
     chatRequest({ message: "x".repeat(1001), requestId }),

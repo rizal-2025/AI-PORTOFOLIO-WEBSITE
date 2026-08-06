@@ -1,5 +1,7 @@
 export type AuraDemoConfig = Readonly<{
   baseUrl: string;
+  cfAccessClientId: string;
+  cfAccessClientSecret: string;
   clientSubjectHmacKey: string;
   serviceToken: string;
   sessionCookieName: string;
@@ -17,8 +19,22 @@ const MIN_TIMEOUT_MS = 1_000;
 const MAX_TIMEOUT_MS = 30_000;
 const MIN_SERVICE_TOKEN_LENGTH = 32;
 const MAX_SERVICE_TOKEN_LENGTH = 512;
-const KOYEB_HOST_PATTERN =
-  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+koyeb\.app$/;
+const DNS_HOST_PATTERN =
+  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])$/;
+const FORBIDDEN_API_HOST_SUFFIXES = [
+  ".trycloudflare.com",
+  ".cfargotunnel.com",
+  ".cloudflareaccess.com",
+  ".vercel.app",
+  ".koyeb.app",
+  ".neon.tech",
+  ".railway.app",
+  ".localhost",
+  ".local",
+  ".internal",
+  ".test",
+  ".example",
+] as const;
 const CONTROL_CHARACTER_PATTERN = /\p{C}/u;
 const SERVICE_TOKEN_PLACEHOLDER_PATTERNS = [
   /CHANGE[_-]?ME/i,
@@ -88,7 +104,7 @@ function parseBaseUrl(
     (trustedIngressMode !== "vercel" ||
       parsed.protocol !== "https:" ||
       parsed.port !== "" ||
-      !KOYEB_HOST_PATTERN.test(parsed.hostname))
+      !isExpectedCloudflareHostname(parsed.hostname))
   ) {
     return invalidConfig();
   }
@@ -96,13 +112,16 @@ function parseBaseUrl(
   return parsed.origin;
 }
 
-function configuredBaseUrl(): string | undefined {
-  const current = process.env.AURA_SERVER_BASE_URL;
-  const legacy = process.env.AURA_INTERNAL_BASE_URL;
-  if (current !== undefined && legacy !== undefined) {
-    return invalidConfig();
-  }
-  return current ?? legacy;
+function isExpectedCloudflareHostname(hostname: string): boolean {
+  const environment = process.env.VERCEL_ENV;
+  const expectedPrefix = environment === "preview" ? "aura-staging." : "aura-api.";
+  return (
+    DNS_HOST_PATTERN.test(hostname) &&
+    hostname.startsWith(expectedPrefix) &&
+    !FORBIDDEN_API_HOST_SUFFIXES.some(
+      (suffix) => hostname === suffix.slice(1) || hostname.endsWith(suffix),
+    )
+  );
 }
 
 function isTriviallyRepeated(value: string): boolean {
@@ -172,8 +191,14 @@ export function getAuraDemoConfig(
   );
   return Object.freeze({
     baseUrl: parseBaseUrl(
-      configuredBaseUrl(),
+      process.env.AURA_SERVER_BASE_URL,
       trustedIngressMode,
+    ),
+    cfAccessClientId: parseServiceToken(
+      process.env.AURA_CF_ACCESS_CLIENT_ID,
+    ),
+    cfAccessClientSecret: parseServiceToken(
+      process.env.AURA_CF_ACCESS_CLIENT_SECRET,
     ),
     clientSubjectHmacKey: parseServiceToken(
       process.env.AURA_CLIENT_SUBJECT_HMAC_KEY,

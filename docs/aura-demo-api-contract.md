@@ -21,7 +21,7 @@ Status saat ini:
 - chat, reservations, dan reset BFF sudah diimplementasikan pada branch
   `feature/aura-demo-bff-complete`;
 - integrasi frontend dan IP/client-subject limiter telah diimplementasikan;
-- konfigurasi Vercel/Cloudflare/Windows self-host telah disiapkan, sementara akun,
+- konfigurasi Vercel/Tailscale Funnel/Windows self-host telah disiapkan, sementara akun,
   secret, migration, deployment, dan traffic tetap berada di human gate;
 - kontrak Chat BFF telah diaudit dengan keputusan **GO** sebelum implementasi.
 
@@ -723,8 +723,8 @@ Behavior aktual:
   production reference;
 - menghapus expired rate-limit buckets secara bounded;
 - output hanya aggregate aman;
-- workflow GitHub Actions telah dikonfigurasi tetapi schedule tetap inert sampai
-  variable go-live diaktifkan setelah approval.
+- Windows Task Scheduler hanya boleh menjalankan cleanup dan backup; AURA serta
+  Funnel tetap manual dan off-by-default.
 
 Reset dan cleanup berbeda: reset mempertahankan session/Customer dan active
 buckets, sedangkan lifecycle cleanup menghapus session yang sudah tidak aktif
@@ -758,9 +758,8 @@ Placeholder server-side yang diizinkan:
 
 | Placeholder | Purpose |
 |---|---|
-| `AURA_SERVER_BASE_URL` | Exact Cloudflare Access HTTPS origin yang hanya diketahui BFF. |
-| `AURA_CF_ACCESS_CLIENT_ID` | Cloudflare Access Client ID server-only. |
-| `AURA_CF_ACCESS_CLIENT_SECRET` | Cloudflare Access Client Secret server-only. |
+| `AURA_SERVER_BASE_URL` | Exact stable Tailscale Funnel HTTPS origin yang hanya diketahui BFF. |
+| `AURA_BACKEND_MODE` | Wajib `tailscale-funnel`. |
 | `AURA_DEMO_SERVICE_TOKEN` | Service credential BFF-ke-AURA. |
 | `AURA_DEMO_SESSION_COOKIE` | Nama cookie HttpOnly. |
 | `AURA_BFF_TIMEOUT_MS` | Batas waktu request BFF-ke-AURA. |
@@ -795,7 +794,7 @@ belum terhubung.
 - update reservation final confirmation masih roadmap;
 - incomplete-marker administrative recovery belum dibuat;
 - browser integration test belum dibuat;
-- trusted Vercel/Cloudflare runtime behavior belum diuji saat deployment;
+- trusted Vercel/Tailscale Funnel runtime behavior belum diuji saat deployment;
 - server-only boundary masih didukung convention `.server.ts` dan import graph;
 - scheduler cleanup belum diaktifkan;
 - production deployment dan public traffic belum dijalankan.

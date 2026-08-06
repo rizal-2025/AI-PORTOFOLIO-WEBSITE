@@ -1,7 +1,6 @@
 export type AuraDemoConfig = Readonly<{
+  backendMode: "tailscale-funnel";
   baseUrl: string;
-  cfAccessClientId: string;
-  cfAccessClientSecret: string;
   clientSubjectHmacKey: string;
   serviceToken: string;
   sessionCookieName: string;
@@ -19,22 +18,8 @@ const MIN_TIMEOUT_MS = 1_000;
 const MAX_TIMEOUT_MS = 30_000;
 const MIN_SERVICE_TOKEN_LENGTH = 32;
 const MAX_SERVICE_TOKEN_LENGTH = 512;
-const DNS_HOST_PATTERN =
-  /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])$/;
-const FORBIDDEN_API_HOST_SUFFIXES = [
-  ".trycloudflare.com",
-  ".cfargotunnel.com",
-  ".cloudflareaccess.com",
-  ".vercel.app",
-  ".koyeb.app",
-  ".neon.tech",
-  ".railway.app",
-  ".localhost",
-  ".local",
-  ".internal",
-  ".test",
-  ".example",
-] as const;
+const TAILSCALE_FUNNEL_HOST_PATTERN =
+  /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.ts\.net$/;
 const CONTROL_CHARACTER_PATTERN = /\p{C}/u;
 const SERVICE_TOKEN_PLACEHOLDER_PATTERNS = [
   /CHANGE[_-]?ME/i,
@@ -99,29 +84,24 @@ function parseBaseUrl(
   ) {
     return invalidConfig();
   }
-  if (
-    process.env.NODE_ENV === "production" &&
-    (trustedIngressMode !== "vercel" ||
+  if (process.env.NODE_ENV === "production") {
+    const expectedPort = process.env.VERCEL_ENV === "preview" ? "8443" : "";
+    if (
+      trustedIngressMode !== "vercel" ||
       parsed.protocol !== "https:" ||
-      parsed.port !== "" ||
-      !isExpectedCloudflareHostname(parsed.hostname))
+      parsed.port !== expectedPort ||
+      !TAILSCALE_FUNNEL_HOST_PATTERN.test(parsed.hostname)
+    ) {
+      return invalidConfig();
+    }
+  } else if (
+    !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname) ||
+    !["", "8000", "8001"].includes(parsed.port)
   ) {
     return invalidConfig();
   }
 
   return parsed.origin;
-}
-
-function isExpectedCloudflareHostname(hostname: string): boolean {
-  const environment = process.env.VERCEL_ENV;
-  const expectedPrefix = environment === "preview" ? "aura-staging." : "aura-api.";
-  return (
-    DNS_HOST_PATTERN.test(hostname) &&
-    hostname.startsWith(expectedPrefix) &&
-    !FORBIDDEN_API_HOST_SUFFIXES.some(
-      (suffix) => hostname === suffix.slice(1) || hostname.endsWith(suffix),
-    )
-  );
 }
 
 function isTriviallyRepeated(value: string): boolean {
@@ -189,16 +169,14 @@ export function getAuraDemoConfig(
   const trustedIngressMode = parseTrustedIngressMode(
     process.env.AURA_TRUSTED_INGRESS_MODE,
   );
+  if (process.env.AURA_BACKEND_MODE !== "tailscale-funnel") {
+    return invalidConfig();
+  }
   return Object.freeze({
+    backendMode: "tailscale-funnel",
     baseUrl: parseBaseUrl(
       process.env.AURA_SERVER_BASE_URL,
       trustedIngressMode,
-    ),
-    cfAccessClientId: parseServiceToken(
-      process.env.AURA_CF_ACCESS_CLIENT_ID,
-    ),
-    cfAccessClientSecret: parseServiceToken(
-      process.env.AURA_CF_ACCESS_CLIENT_SECRET,
     ),
     clientSubjectHmacKey: parseServiceToken(
       process.env.AURA_CLIENT_SUBJECT_HMAC_KEY,

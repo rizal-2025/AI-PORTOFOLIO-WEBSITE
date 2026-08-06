@@ -16,7 +16,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!validation.ok) {
     return publicError(validation.error);
   }
-  const context = await requireAuraDemoSession();
+  const context = await requireAuraDemoSession(request);
   if (context instanceof NextResponse) {
     return context;
   }
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await postAuraDemoChat(
       context.config,
       context.sessionToken,
+      context.clientSubject,
       validation.value,
     );
     return publicJson(result, 200);

@@ -3,6 +3,10 @@ import { NextResponse } from "next/server";
 
 import { AuraDemoClientError } from "@/lib/aura-demo/client.server";
 import {
+  AuraDemoClientSubjectError,
+  deriveAuraClientSubject,
+} from "@/lib/aura-demo/client-subject.server";
+import {
   AuraDemoConfigError,
   getAuraDemoCookieConfig,
   getAuraDemoConfig,
@@ -17,6 +21,7 @@ import { isValidAuraSessionToken } from "@/lib/aura-demo/token.server";
 type CookieStore = Awaited<ReturnType<typeof cookies>>;
 
 export type AuraDemoSessionContext = Readonly<{
+  clientSubject: string;
   config: AuraDemoConfig;
   sessionToken: string;
 }>;
@@ -62,6 +67,20 @@ export function upstreamConfigOrError(
   }
 }
 
+export function clientSubjectOrError(
+  request: Request,
+  config: AuraDemoConfig,
+): string | NextResponse {
+  try {
+    return deriveAuraClientSubject(request, config);
+  } catch (error) {
+    if (error instanceof AuraDemoClientSubjectError) {
+      return publicError("SERVICE_UNAVAILABLE");
+    }
+    return publicError("SERVICE_UNAVAILABLE");
+  }
+}
+
 export async function cookieStoreOrError(): Promise<
   CookieStore | NextResponse
 > {
@@ -86,7 +105,9 @@ export function clientErrorResponseForSession(
   return response;
 }
 
-export async function requireAuraDemoSession(): Promise<
+export async function requireAuraDemoSession(
+  request: Request,
+): Promise<
   AuraDemoSessionContext | NextResponse
 > {
   const cookieConfig = cookieConfigOrError();
@@ -110,7 +131,12 @@ export async function requireAuraDemoSession(): Promise<
   if (config instanceof NextResponse) {
     return config;
   }
+  const clientSubject = clientSubjectOrError(request, config);
+  if (clientSubject instanceof NextResponse) {
+    return clientSubject;
+  }
   return {
+    clientSubject,
     config,
     sessionToken: existingCookie.value,
   };

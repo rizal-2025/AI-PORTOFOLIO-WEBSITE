@@ -21,6 +21,7 @@ import { publicError, publicJson } from "@/lib/aura-demo/response";
 import {
   clientErrorResponse,
   clientErrorResponseForSession,
+  clientSubjectOrError,
   cookieConfigOrError,
   cookieStoreOrError,
   upstreamConfigOrError,
@@ -32,10 +33,11 @@ export const dynamic = "force-dynamic";
 
 async function createSessionResponse(
   config: AuraDemoConfig,
+  clientSubject: string,
   clearExistingCookieOnFailure: boolean,
 ): Promise<NextResponse> {
   try {
-    const created = await createAuraDemoSession(config);
+    const created = await createAuraDemoSession(config, clientSubject);
     const body: PublicCreateSessionResponse = {
       session: created.session,
     };
@@ -98,18 +100,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
     return config;
   }
+  const clientSubject = clientSubjectOrError(request, config);
+  if (clientSubject instanceof NextResponse) {
+    return clientSubject;
+  }
 
   if (existingCookie === undefined) {
-    return createSessionResponse(config, false);
+    return createSessionResponse(config, clientSubject, false);
   }
   if (locallyInvalid) {
-    return createSessionResponse(config, true);
+    return createSessionResponse(config, clientSubject, true);
   }
 
   try {
     const current = await getCurrentAuraDemoSession(
       config,
       existingCookie.value,
+      clientSubject,
     );
     const body: PublicCreateSessionResponse = {
       session: current.session,
@@ -120,7 +127,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       error instanceof AuraDemoClientError &&
       error.kind === "session-required"
     ) {
-      return createSessionResponse(config, true);
+      return createSessionResponse(config, clientSubject, true);
     }
     return clientErrorResponse(error);
   }
@@ -156,11 +163,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (config instanceof NextResponse) {
     return config;
   }
+  const clientSubject = clientSubjectOrError(request, config);
+  if (clientSubject instanceof NextResponse) {
+    return clientSubject;
+  }
 
   try {
     const current = await getCurrentAuraDemoSession(
       config,
       existingCookie.value,
+      clientSubject,
     );
     return publicJson(current, 200);
   } catch (error) {

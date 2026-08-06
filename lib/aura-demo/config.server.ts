@@ -1,8 +1,10 @@
 export type AuraDemoConfig = Readonly<{
   baseUrl: string;
+  clientSubjectHmacKey: string;
   serviceToken: string;
   sessionCookieName: string;
   timeoutMs: number;
+  trustedIngressMode: "development" | "railway";
 }>;
 
 export type AuraDemoCookieConfig = Readonly<{
@@ -15,6 +17,7 @@ const MIN_TIMEOUT_MS = 1_000;
 const MAX_TIMEOUT_MS = 30_000;
 const MIN_SERVICE_TOKEN_LENGTH = 32;
 const MAX_SERVICE_TOKEN_LENGTH = 512;
+const RAILWAY_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const CONTROL_CHARACTER_PATTERN = /\p{C}/u;
 const SERVICE_TOKEN_PLACEHOLDER_PATTERNS = [
   /CHANGE[_-]?ME/i,
@@ -36,7 +39,29 @@ function invalidConfig(): never {
   throw new AuraDemoConfigError();
 }
 
-function parseBaseUrl(rawValue: string | undefined): string {
+function parseTrustedIngressMode(
+  rawValue: string | undefined,
+): "development" | "railway" {
+  if (rawValue === "development" && process.env.NODE_ENV !== "production") {
+    return rawValue;
+  }
+  if (
+    rawValue === "railway" &&
+    process.env.NODE_ENV === "production" &&
+    process.env.AURA_RAILWAY_IP_HEADER_VERIFIED === "true" &&
+    process.env.RAILWAY_SERVICE_NAME === "portfolio-web" &&
+    RAILWAY_ID_PATTERN.test(process.env.RAILWAY_ENVIRONMENT_ID ?? "") &&
+    RAILWAY_ID_PATTERN.test(process.env.RAILWAY_SERVICE_ID ?? "")
+  ) {
+    return rawValue;
+  }
+  return invalidConfig();
+}
+
+function parseBaseUrl(
+  rawValue: string | undefined,
+  trustedIngressMode: "development" | "railway",
+): string {
   if (typeof rawValue !== "string" || rawValue.trim() === "") {
     return invalidConfig();
   }
@@ -59,7 +84,14 @@ function parseBaseUrl(rawValue: string | undefined): string {
     return invalidConfig();
   }
   if (process.env.NODE_ENV === "production" && parsed.protocol !== "https:") {
-    return invalidConfig();
+    const railwayPrivateHttp =
+      trustedIngressMode === "railway" &&
+      parsed.protocol === "http:" &&
+      parsed.hostname === "aura-api.railway.internal" &&
+      parsed.port !== "";
+    if (!railwayPrivateHttp) {
+      return invalidConfig();
+    }
   }
 
   return parsed.origin;
@@ -127,10 +159,20 @@ export function getAuraDemoCookieConfig(): AuraDemoCookieConfig {
 export function getAuraDemoConfig(
   cookieConfig: AuraDemoCookieConfig,
 ): AuraDemoConfig {
+  const trustedIngressMode = parseTrustedIngressMode(
+    process.env.AURA_TRUSTED_INGRESS_MODE,
+  );
   return Object.freeze({
-    baseUrl: parseBaseUrl(process.env.AURA_INTERNAL_BASE_URL),
+    baseUrl: parseBaseUrl(
+      process.env.AURA_INTERNAL_BASE_URL,
+      trustedIngressMode,
+    ),
+    clientSubjectHmacKey: parseServiceToken(
+      process.env.AURA_CLIENT_SUBJECT_HMAC_KEY,
+    ),
     serviceToken: parseServiceToken(process.env.AURA_DEMO_SERVICE_TOKEN),
     sessionCookieName: cookieConfig.sessionCookieName,
     timeoutMs: parseTimeout(process.env.AURA_BFF_TIMEOUT_MS),
+    trustedIngressMode,
   });
 }

@@ -24,8 +24,11 @@ const absolute = "2099-08-06T10:00:00Z";
 
 process.env.AURA_INTERNAL_BASE_URL = "https://aura.internal";
 process.env.AURA_DEMO_SERVICE_TOKEN = "synthetic-service-token-for-route-tests";
+process.env.AURA_CLIENT_SUBJECT_HMAC_KEY =
+  "synthetic-client-subject-hmac-key-for-route-tests";
 process.env.AURA_DEMO_SESSION_COOKIE = "aura_demo";
 process.env.AURA_BFF_TIMEOUT_MS = "5000";
+process.env.AURA_TRUSTED_INGRESS_MODE = "development";
 
 function jsonResponse(value: unknown, status = 200, headers = {}): Response {
   return new Response(JSON.stringify(value), {
@@ -75,6 +78,7 @@ test.before(() => {
       headers.get("X-BFF-Service-Token"),
       "synthetic-service-token-for-route-tests",
     );
+    assert.match(headers.get("X-Demo-Client-Subject") ?? "", /^[0-9a-f]{64}$/);
     const scoped = url.pathname !== "/internal/demo/sessions";
     if (scoped) {
       const receivedToken = headers.get("X-Demo-Session-Token");
@@ -310,6 +314,19 @@ test("routes reject browser auth headers, cross-site calls, bodies, and missing 
     ),
   );
   assert.equal(browserAuth.status, 400);
+
+  const browserSubject = await postChat(
+    publicRequest(
+      "/api/demo/chat",
+      "POST",
+      JSON.stringify({ message: "Halo", requestId }),
+      {
+        "content-type": "application/json",
+        "x-demo-client-subject": "c".repeat(64),
+      },
+    ),
+  );
+  assert.equal(browserSubject.status, 400);
 
   const crossSite = await postChat(
     publicRequest(

@@ -521,12 +521,14 @@ async function throwForFailure(
 
 export async function createAuraDemoSession(
   config: AuraDemoConfig,
+  clientSubject: string,
 ): Promise<ParsedAuraCreateSession> {
   return runAuraRequest(
     config,
     CREATE_SESSION_PATH,
     {
       "X-BFF-Service-Token": config.serviceToken,
+      "X-Demo-Client-Subject": clientSubject,
     },
     "POST",
     undefined,
@@ -548,12 +550,14 @@ export async function createAuraDemoSession(
 export async function getCurrentAuraDemoSession(
   config: AuraDemoConfig,
   sessionToken: string,
+  clientSubject: string,
 ): Promise<PublicCurrentSessionResponse> {
   return runAuraRequest(
     config,
     CURRENT_SESSION_PATH,
     {
       "X-BFF-Service-Token": config.serviceToken,
+      "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
     },
     "GET",
@@ -576,6 +580,7 @@ export async function getCurrentAuraDemoSession(
 export async function postAuraDemoChat(
   config: AuraDemoConfig,
   sessionToken: string,
+  clientSubject: string,
   request: PublicDemoChatRequest,
 ): Promise<PublicDemoChatResponse> {
   return runAuraRequest(
@@ -584,6 +589,7 @@ export async function postAuraDemoChat(
     {
       "Content-Type": "application/json",
       "X-BFF-Service-Token": config.serviceToken,
+      "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
     },
     "POST",
@@ -612,12 +618,14 @@ export async function postAuraDemoChat(
 export async function getAuraDemoReservations(
   config: AuraDemoConfig,
   sessionToken: string,
+  clientSubject: string,
 ): Promise<PublicDemoReservationListResponse> {
   return runAuraRequest(
     config,
     RESERVATIONS_PATH,
     {
       "X-BFF-Service-Token": config.serviceToken,
+      "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
     },
     "GET",
@@ -639,12 +647,14 @@ export async function getAuraDemoReservations(
 export async function resetAuraDemo(
   config: AuraDemoConfig,
   sessionToken: string,
+  clientSubject: string,
 ): Promise<PublicDemoResetResponse> {
   return runAuraRequest(
     config,
     RESET_PATH,
     {
       "X-BFF-Service-Token": config.serviceToken,
+      "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
     },
     "POST",

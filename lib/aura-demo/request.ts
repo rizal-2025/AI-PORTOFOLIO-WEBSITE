@@ -58,7 +58,8 @@ function hasQuery(request: Request): boolean {
 function hasBrowserInternalTokenHeader(request: Request): boolean {
   return (
     request.headers.has("x-demo-session-token") ||
-    request.headers.has("x-bff-service-token")
+    request.headers.has("x-bff-service-token") ||
+    request.headers.has("x-demo-client-subject")
   );
 }
 

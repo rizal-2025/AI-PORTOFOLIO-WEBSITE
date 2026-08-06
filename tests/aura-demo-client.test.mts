@@ -9,11 +9,14 @@ import {
 
 const config = {
   baseUrl: "https://aura.internal",
+  clientSubjectHmacKey: "synthetic-client-subject-key",
   serviceToken: "synthetic-service-token",
   sessionCookieName: "aura_demo",
   timeoutMs: 500,
+  trustedIngressMode: "development",
 } as const;
 const sessionToken = "x".repeat(43);
+const clientSubject = "c".repeat(64);
 const requestId = "123e4567-e89b-42d3-a456-426614174000";
 const reference = "RSV_0123456789abcdef0123456789abcdef";
 const timestamp = "2026-08-05T10:00:00Z";
@@ -46,6 +49,7 @@ test("chat client sends server-only headers once and strips internal reply ID", 
     assert.equal(init?.method, "POST");
     const headers = new Headers(init?.headers);
     assert.equal(headers.get("X-BFF-Service-Token"), config.serviceToken);
+    assert.equal(headers.get("X-Demo-Client-Subject"), clientSubject);
     assert.equal(headers.get("X-Demo-Session-Token"), sessionToken);
     assert.deepEqual(JSON.parse(String(init?.body)), {
       message: "Halo",
@@ -65,7 +69,7 @@ test("chat client sends server-only headers once and strips internal reply ID", 
       handoff: null,
     });
   }, async () => {
-    const result = await postAuraDemoChat(config, sessionToken, {
+    const result = await postAuraDemoChat(config, sessionToken, clientSubject, {
       message: "Halo",
       requestId,
     });
@@ -89,7 +93,7 @@ test("client classifies only exact session and conflict envelopes", async () => 
       401,
     ), async () => {
     await assert.rejects(
-      () => getAuraDemoReservations(config, sessionToken),
+      () => getAuraDemoReservations(config, sessionToken, clientSubject),
       (error) =>
         error instanceof AuraDemoClientError &&
         error.kind === "session-required",
@@ -106,7 +110,7 @@ test("client classifies only exact session and conflict envelopes", async () => 
     ), async () => {
     await assert.rejects(
       () =>
-        postAuraDemoChat(config, sessionToken, {
+        postAuraDemoChat(config, sessionToken, clientSubject, {
           message: "Halo",
           requestId,
         }),
@@ -126,7 +130,7 @@ test("client classifies only exact session and conflict envelopes", async () => 
     ), async () => {
     await assert.rejects(
       () =>
-        postAuraDemoChat(config, sessionToken, {
+        postAuraDemoChat(config, sessionToken, clientSubject, {
           message: "Halo",
           requestId,
         }),
@@ -154,7 +158,7 @@ test("rate-limit mapping forwards only validated integer headers", async () => {
       },
     ), async () => {
     await assert.rejects(
-      () => getAuraDemoReservations(config, sessionToken),
+      () => getAuraDemoReservations(config, sessionToken, clientSubject),
       (error) => {
         assert.ok(error instanceof AuraDemoClientError);
         assert.equal(error.kind, "rate-limited");
@@ -190,6 +194,7 @@ test("one overall deadline aborts the request without retry", async () => {
         postAuraDemoChat(
           { ...config, timeoutMs: 10 },
           sessionToken,
+          clientSubject,
           { message: "Halo", requestId },
         ),
       (error) =>

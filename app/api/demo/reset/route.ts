@@ -16,7 +16,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   if (requestError !== null) {
     return publicError(requestError);
   }
-  const context = await requireAuraDemoSession();
+  const context = await requireAuraDemoSession(request);
   if (context instanceof NextResponse) {
     return context;
   }
@@ -24,6 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await resetAuraDemo(
       context.config,
       context.sessionToken,
+      context.clientSubject,
     );
     return publicJson(result, 200);
   } catch (error) {

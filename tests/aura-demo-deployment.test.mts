@@ -117,16 +117,17 @@ test("development backend origins are loopback-only", (t) => {
   }
 });
 
-test("Vercel config and BFF route budgets target Frankfurt safely", () => {
+test("Vercel config targets Singapore without deprecated route overrides", () => {
   const config = JSON.parse(readFileSync("vercel.json", "utf8")) as {
     framework: string;
     regions: string[];
   };
   assert.equal(config.framework, "nextjs");
-  assert.deepEqual(config.regions, ["fra1"]);
+  assert.deepEqual(config.regions, ["sin1"]);
   for (const route of ["session", "chat", "reservations", "reset"]) {
     const source = readFileSync(`app/api/demo/${route}/route.ts`, "utf8");
-    assert.match(source, /preferredRegion = "fra1"/);
+    assert.doesNotMatch(source, /preferredRegion/);
+    assert.match(source, /runtime = "nodejs"/);
     assert.match(source, /maxDuration = 60/);
   }
 });

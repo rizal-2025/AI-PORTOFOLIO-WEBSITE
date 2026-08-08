@@ -60,10 +60,10 @@ export const siteConfig = {
   featuredProject: {
     name: "AURA",
     category: "AI Reservation & Customer-Service Agent",
-    status: "Development",
+    status: "Live demo",
     role: "AI Agent & Backend Engineering",
     description:
-      "AI Agent berbahasa Indonesia untuk membantu alur reservasi dan layanan pelanggan, dengan jalur handoff yang jelas ke admin.",
+      "AI assistant berbahasa Indonesia untuk alur reservasi dan layanan pelanggan, dengan demo publik serta jalur handoff yang jelas ke admin.",
     caseStudyHref: "/projects/aura",
     demoHref: "/demo/aura",
     features: [

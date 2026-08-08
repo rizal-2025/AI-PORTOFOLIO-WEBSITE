@@ -19,16 +19,15 @@ export function HeroSection() {
             <ButtonLink href="/demo/aura">Coba AURA</ButtonLink>
             <ButtonLink href="/projects" variant="secondary">Lihat Proyek</ButtonLink>
           </div>
-          <p className="mt-6 text-sm text-slate-500">Available for selected projects.</p>
         </div>
 
         <aside className="border-l border-slate-800 pl-6 sm:pl-8">
-          <p className="text-sm font-medium text-slate-200">Flagship project</p>
+          <p className="text-sm font-medium text-slate-200">Proyek unggulan</p>
           <p className="mt-4 text-lg leading-8 text-slate-400">
-            AURA adalah bukti utama: AI assistant untuk percakapan dan alur reservasi yang dapat dicoba melalui demo portofolio.
+            AURA adalah proyek AI utama saya untuk percakapan dan alur reservasi yang dapat dicoba melalui demo portofolio.
           </p>
           <div className="mt-7 border-t border-slate-800 pt-5 text-sm text-cyan-200">
-            Live self-hosted demo. Availability may vary when the backend is offline.
+            Demo self-hosted tersedia saat backend aktif.
           </div>
         </aside>
       </PageContainer>

@@ -9,7 +9,7 @@ const linkStyles =
 export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/95">
-      <PageContainer className="flex min-h-16 items-center justify-between gap-6">
+      <PageContainer className="flex min-h-16 items-center justify-between gap-2 sm:gap-3">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 rounded-md font-semibold tracking-tight text-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"

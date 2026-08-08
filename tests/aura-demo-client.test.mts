@@ -336,6 +336,104 @@ test("early upstream fetch failure is not an application abort and leaks no deta
   }
 });
 
+test("transport causes map only to fixed safe diagnostic codes", async () => {
+  const cases = [
+    ["UND_ERR_CONNECT_TIMEOUT", "UPSTREAM_CONNECT_TIMEOUT"],
+    ["ETIMEDOUT", "UPSTREAM_CONNECT_TIMEOUT"],
+    ["UND_ERR_HEADERS_TIMEOUT", "UPSTREAM_HEADERS_TIMEOUT"],
+    ["UND_ERR_BODY_TIMEOUT", "UPSTREAM_BODY_TIMEOUT"],
+    ["ENOTFOUND", "UPSTREAM_DNS_NOT_FOUND"],
+    ["EAI_AGAIN", "UPSTREAM_DNS_TEMPORARY_FAILURE"],
+    ["ECONNREFUSED", "UPSTREAM_CONNECTION_REFUSED"],
+    ["ECONNRESET", "UPSTREAM_CONNECTION_RESET"],
+    ["ENETUNREACH", "UPSTREAM_NETWORK_UNREACHABLE"],
+    ["EHOSTUNREACH", "UPSTREAM_HOST_UNREACHABLE"],
+    ["ERR_TLS_CERT_ALTNAME_INVALID", "UPSTREAM_TLS_FAILED"],
+  ] as const;
+
+  for (const [rawCode, expectedCode] of cases) {
+    const warnings = await captureWarnings(async () => {
+      await withFetch(async () => {
+        const error = new TypeError(
+          `${config.baseUrl} ${config.serviceToken} raw transport detail`,
+        );
+        Object.defineProperty(error, "cause", {
+          value: {
+            errors: [
+              {
+                code: rawCode,
+                message: `${clientSubject} ${sessionToken}`,
+              },
+            ],
+          },
+        });
+        throw error;
+      }, async () => {
+        await assert.rejects(
+          () => createAuraDemoSession(config, clientSubject),
+          (error) =>
+            error instanceof AuraDemoClientError &&
+            error.kind === "unavailable",
+        );
+      });
+    });
+
+    assert.equal(warnings.length, 1);
+    const diagnostic = JSON.parse(warnings[0]) as Record<string, unknown>;
+    assert.deepEqual(Object.keys(diagnostic).sort(), [
+      "abortSignalFired",
+      "code",
+      "elapsedMs",
+      "stage",
+    ]);
+    assert.equal(diagnostic.stage, "fetch");
+    assert.equal(diagnostic.code, expectedCode);
+    assert.equal(diagnostic.abortSignalFired, false);
+    for (const sensitive of [
+      rawCode,
+      config.baseUrl,
+      config.serviceToken,
+      clientSubject,
+      sessionToken,
+      "raw transport detail",
+    ]) {
+      assert.equal(warnings[0].includes(sensitive), false);
+    }
+  }
+
+  const unknownCode = "SECRET_INTERNAL_TRANSPORT_DETAIL";
+  const warnings = await captureWarnings(async () => {
+    await withFetch(async () => {
+      const error = new TypeError("raw network detail");
+      Object.defineProperty(error, "cause", {
+        value: new Proxy(
+          { code: unknownCode },
+          {
+            get(target, property, receiver) {
+              if (property === "cause" || property === "errors") {
+                throw new Error("hostile diagnostic getter");
+              }
+              return Reflect.get(target, property, receiver);
+            },
+          },
+        ),
+      });
+      throw error;
+    }, async () => {
+      await assert.rejects(
+        () => createAuraDemoSession(config, clientSubject),
+        (error) =>
+          error instanceof AuraDemoClientError &&
+          error.kind === "unavailable",
+      );
+    });
+  });
+  assert.equal(warnings.length, 1);
+  assert.equal(JSON.parse(warnings[0]).code, "UPSTREAM_FETCH_FAILED");
+  assert.equal(warnings[0].includes(unknownCode), false);
+  assert.equal(warnings[0].includes("hostile diagnostic getter"), false);
+});
+
 test("Funnel proxy HTML and an offline gateway map to unavailable without retry", async () => {
   let calls = 0;
   await withFetch(async () => {

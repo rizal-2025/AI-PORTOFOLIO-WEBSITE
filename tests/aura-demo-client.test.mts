@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   AuraDemoClientError,
+  createAuraDemoSession,
   getAuraDemoReservations,
   postAuraDemoChat,
 } from "@/lib/aura-demo/client.server";
@@ -13,7 +14,7 @@ const config = {
   clientSubjectHmacKey: "synthetic-client-subject-key",
   serviceToken: "synthetic-service-token",
   sessionCookieName: "aura_demo",
-  timeoutMs: 500,
+  timeoutMs: 30_000,
   trustedIngressMode: "development",
 } as const;
 const sessionToken = "x".repeat(43);
@@ -21,6 +22,22 @@ const clientSubject = "c".repeat(64);
 const requestId = "123e4567-e89b-42d3-a456-426614174000";
 const reference = "RSV_0123456789abcdef0123456789abcdef";
 const timestamp = "2026-08-05T10:00:00Z";
+
+async function captureWarnings(
+  operation: () => Promise<void>,
+): Promise<string[]> {
+  const original = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...values: unknown[]) => {
+    warnings.push(values.map(String).join(" "));
+  };
+  try {
+    await operation();
+  } finally {
+    console.warn = original;
+  }
+  return warnings;
+}
 
 function jsonResponse(value: unknown, status = 200, headers = {}): Response {
   return new Response(JSON.stringify(value), {
@@ -205,6 +222,118 @@ test("one overall deadline aborts the request without retry", async () => {
     assert.equal(calls, 1);
     assert.equal(aborted, true);
   });
+});
+
+test("configured 30000 ms budget reaches session creation with no hidden 500 ms abort", async () => {
+  let calls = 0;
+  let signal: AbortSignal | null = null;
+  await withFetch(async (_input, init) => {
+    calls += 1;
+    signal = init?.signal ?? null;
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    assert.equal(signal?.aborted, false);
+    return jsonResponse(
+      {
+        sessionToken,
+        session: {
+          status: "active",
+          expiresAt: "2099-08-05T10:15:00Z",
+          idleExpiresAt: "2099-08-05T10:15:00Z",
+          absoluteExpiresAt: "2099-08-05T11:00:00Z",
+          messageCount: 0,
+        },
+      },
+      201,
+    );
+  }, async () => {
+    const result = await createAuraDemoSession(
+      config,
+      clientSubject,
+    );
+    assert.equal(result.sessionToken, sessionToken);
+    assert.equal(calls, 1);
+    assert.equal(signal?.aborted, false);
+  });
+});
+
+test("session creation timeout fails closed once and logs only safe timing fields", async () => {
+  let calls = 0;
+  const warnings = await captureWarnings(async () => {
+    await withFetch((_input, init) => {
+      calls += 1;
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener(
+          "abort",
+          () => reject(new DOMException("secret abort detail", "AbortError")),
+          { once: true },
+        );
+      });
+    }, async () => {
+      await assert.rejects(
+        () =>
+          createAuraDemoSession(
+            { ...config, timeoutMs: 10 },
+            clientSubject,
+          ),
+        (error) =>
+          error instanceof AuraDemoClientError && error.kind === "timeout",
+      );
+    });
+  });
+
+  assert.equal(calls, 1);
+  assert.equal(warnings.length, 1);
+  const diagnostic = JSON.parse(warnings[0]) as Record<string, unknown>;
+  assert.deepEqual(Object.keys(diagnostic).sort(), [
+    "abortSignalFired",
+    "code",
+    "elapsedMs",
+    "stage",
+  ]);
+  assert.equal(diagnostic.stage, "fetch");
+  assert.equal(diagnostic.code, "APPLICATION_TIMEOUT");
+  assert.equal(diagnostic.abortSignalFired, true);
+  assert.equal(typeof diagnostic.elapsedMs, "number");
+  assert.doesNotMatch(warnings[0], /secret|127\.0\.0\.1|synthetic/i);
+});
+
+test("early upstream fetch failure is not an application abort and leaks no detail", async () => {
+  const sensitiveError = [
+    config.baseUrl,
+    config.serviceToken,
+    clientSubject,
+    sessionToken,
+  ].join(" ");
+  const warnings = await captureWarnings(async () => {
+    await withFetch(async () => {
+      throw new TypeError(sensitiveError);
+    }, async () => {
+      await assert.rejects(
+        () => createAuraDemoSession(config, clientSubject),
+        (error) =>
+          error instanceof AuraDemoClientError &&
+          error.kind === "unavailable",
+      );
+    });
+  });
+
+  assert.equal(warnings.length, 1);
+  const diagnostic = JSON.parse(warnings[0]) as Record<string, unknown>;
+  assert.deepEqual(diagnostic, {
+    stage: "fetch",
+    elapsedMs: diagnostic.elapsedMs,
+    code: "UPSTREAM_FETCH_FAILED",
+    abortSignalFired: false,
+  });
+  assert.equal(typeof diagnostic.elapsedMs, "number");
+  for (const value of [
+    config.baseUrl,
+    config.serviceToken,
+    clientSubject,
+    sessionToken,
+  ]) {
+    assert.equal(warnings[0].includes(value), false);
+  }
 });
 
 test("Funnel proxy HTML and an offline gateway map to unavailable without retry", async () => {

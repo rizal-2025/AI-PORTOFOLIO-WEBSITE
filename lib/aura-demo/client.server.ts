@@ -40,6 +40,18 @@ type ParsedJsonDocument = Readonly<{
   value: unknown;
 }>;
 
+type AuraRequestStage = "fetch" | "response";
+
+type AuraRequestDiagnosticCode =
+  | "APPLICATION_TIMEOUT"
+  | "SESSION_REQUIRED"
+  | "UPSTREAM_FETCH_FAILED"
+  | "UPSTREAM_INVALID_RESPONSE"
+  | "UPSTREAM_RATE_LIMITED"
+  | "UPSTREAM_REQUEST_CONFLICT"
+  | "UPSTREAM_TIMEOUT"
+  | "UPSTREAM_UNAVAILABLE";
+
 export class AuraDemoClientError extends Error {
   readonly kind: AuraDemoClientErrorKind;
   readonly rateLimitHeaders: SafeRateLimitHeaders;
@@ -81,6 +93,52 @@ const ERROR_ENVELOPE_KEYS = ["code", "detail"] as const;
 const JSON_PROPERTY_PATTERN = /"((?:\\.|[^"\\])*)"\s*:/g;
 const JSON_CONTENT_TYPE_PATTERN =
   /^application\/json(?:\s*;\s*charset=utf-8)?$/i;
+
+function diagnosticCodeFor(
+  error: unknown,
+  stage: AuraRequestStage,
+): AuraRequestDiagnosticCode {
+  if (!(error instanceof AuraDemoClientError)) {
+    return stage === "fetch"
+      ? "UPSTREAM_FETCH_FAILED"
+      : "UPSTREAM_UNAVAILABLE";
+  }
+
+  switch (error.kind) {
+    case "invalid-response":
+      return "UPSTREAM_INVALID_RESPONSE";
+    case "rate-limited":
+      return "UPSTREAM_RATE_LIMITED";
+    case "request-conflict":
+      return "UPSTREAM_REQUEST_CONFLICT";
+    case "session-required":
+      return "SESSION_REQUIRED";
+    case "timeout":
+      return "UPSTREAM_TIMEOUT";
+    case "unavailable":
+      return "UPSTREAM_UNAVAILABLE";
+  }
+}
+
+function logAuraRequestFailure(
+  startedAt: number,
+  stage: AuraRequestStage,
+  code: AuraRequestDiagnosticCode,
+  abortSignalFired: boolean,
+): void {
+  try {
+    console.warn(
+      JSON.stringify({
+        stage,
+        elapsedMs: Math.max(0, Date.now() - startedAt),
+        code,
+        abortSignalFired,
+      }),
+    );
+  } catch {
+    // Diagnostics must never alter the safe public failure path.
+  }
+}
 
 function rateLimitHeaders(headers: Headers): SafeRateLimitHeaders {
   const safeHeaders: SafeRateLimitHeaders = {};
@@ -347,8 +405,10 @@ async function runAuraRequest<T>(
     context: AuraRequestContext,
   ) => Promise<T>,
 ): Promise<T> {
+  const startedAt = Date.now();
   const controller = new AbortController();
   const deadlineAt = Date.now() + config.timeoutMs;
+  let stage: AuraRequestStage = "fetch";
   let timedOut = false;
   let activeReader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   let cancelActiveReader: (() => Promise<void>) | null = null;
@@ -404,6 +464,7 @@ async function runAuraRequest<T>(
       redirect: "error",
       signal: controller.signal,
     });
+    stage = "response";
     context.throwIfExpired();
     const result = await handleResponse(response, context);
     context.throwIfExpired();
@@ -415,8 +476,20 @@ async function runAuraRequest<T>(
   } catch (error) {
     if (timedOut || Date.now() >= deadlineAt) {
       markTimedOut();
+      logAuraRequestFailure(
+        startedAt,
+        stage,
+        "APPLICATION_TIMEOUT",
+        controller.signal.aborted,
+      );
       throw new AuraDemoClientError("timeout");
     }
+    logAuraRequestFailure(
+      startedAt,
+      stage,
+      diagnosticCodeFor(error, stage),
+      controller.signal.aborted,
+    );
     if (error instanceof AuraDemoClientError) {
       throw error;
     }

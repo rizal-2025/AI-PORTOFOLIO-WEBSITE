@@ -12,6 +12,8 @@ import {
 
 type AuraTestState = typeof globalThis & {
   __auraDemoCookieValue?: string;
+  __auraDemoForceSessionFailure?: boolean;
+  __auraDemoSessionCreateCalls?: number;
 };
 
 const state = globalThis as AuraTestState;
@@ -96,6 +98,13 @@ test.before(() => {
     }
 
     if (url.pathname === "/internal/demo/sessions") {
+      state.__auraDemoSessionCreateCalls =
+        (state.__auraDemoSessionCreateCalls ?? 0) + 1;
+      if (state.__auraDemoForceSessionFailure) {
+        throw new TypeError(
+          "http://internal-sensitive.invalid synthetic-service-token-for-route-tests",
+        );
+      }
       return jsonResponse(
         { sessionToken, session: session(0) },
         201,
@@ -225,6 +234,8 @@ test.before(() => {
 test.after(() => {
   globalThis.fetch = originalFetch;
   delete state.__auraDemoCookieValue;
+  delete state.__auraDemoForceSessionFailure;
+  delete state.__auraDemoSessionCreateCalls;
 });
 
 test("session routes set HttpOnly cookie and expose no token or internal ID", async () => {
@@ -256,6 +267,42 @@ test("session routes set HttpOnly cookie and expose no token or internal ID", as
   ]);
   assert.equal(JSON.stringify(body).includes('"id"'), false);
   assert.equal(JSON.stringify(body).includes("reference"), false);
+});
+
+test("session-create transport failure remains a safe 503 and is never retried", async () => {
+  const originalWarn = console.warn;
+  const warnings: string[] = [];
+  console.warn = (...values: unknown[]) => {
+    warnings.push(values.map(String).join(" "));
+  };
+  delete state.__auraDemoCookieValue;
+  state.__auraDemoSessionCreateCalls = 0;
+  state.__auraDemoForceSessionFailure = true;
+
+  try {
+    const response = await postSession(
+      publicRequest("/api/demo/session", "POST"),
+    );
+    const body = await response.json();
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("Cache-Control"), "no-store");
+    assert.equal(body.error.code, "SERVICE_UNAVAILABLE");
+    assert.equal(state.__auraDemoSessionCreateCalls, 1);
+    assert.equal(JSON.stringify(body).includes("internal-sensitive"), false);
+    assert.equal(JSON.stringify(body).includes("synthetic-service-token"), false);
+    assert.equal(warnings.length, 1);
+    assert.deepEqual(JSON.parse(warnings[0]), {
+      stage: "fetch",
+      elapsedMs: JSON.parse(warnings[0]).elapsedMs,
+      code: "UPSTREAM_FETCH_FAILED",
+      abortSignalFired: false,
+    });
+    assert.equal(warnings[0].includes("internal-sensitive"), false);
+    assert.equal(warnings[0].includes("synthetic-service-token"), false);
+  } finally {
+    delete state.__auraDemoForceSessionFailure;
+    console.warn = originalWarn;
+  }
 });
 
 test("chat, reservation, and reset routes expose exact public allowlists", async () => {

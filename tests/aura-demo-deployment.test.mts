@@ -7,6 +7,7 @@ import {
   AuraDemoConfigError,
   getAuraDemoConfig,
 } from "@/lib/aura-demo/config.server";
+import { resolveNextOutputMode } from "@/next.config";
 
 const cookie = { sessionCookieName: "aura_demo_session" } as const;
 const variableNames = [
@@ -60,6 +61,12 @@ test("website health response is fixed and never cached", () => {
   const response = health();
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Cache-Control"), "no-store");
+});
+
+test("Vercel managed builds omit Docker standalone output", () => {
+  assert.equal(resolveNextOutputMode("1"), undefined);
+  assert.equal(resolveNextOutputMode(undefined), "standalone");
+  assert.equal(resolveNextOutputMode("0"), "standalone");
 });
 
 test("production BFF permits only a pathless HTTPS Funnel origin on the profile port", (t) => {

@@ -65,6 +65,7 @@ test("website health response is fixed and never cached", () => {
 test("production BFF permits only a pathless HTTPS Funnel origin on the profile port", (t) => {
   preserveEnvironment(t);
   validVercelEnvironment();
+  assert.equal(getAuraDemoConfig(cookie).timeoutMs, 30_000);
   assert.equal(
     getAuraDemoConfig(cookie).baseUrl,
     "https://aura-demo-node.synthetic-tailnet.ts.net:8443",

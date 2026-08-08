@@ -12,12 +12,12 @@ export const metadata: Metadata = {
 };
 
 const featureCards = [
-  ["Create Reservation", "Membantu menyusun detail reservasi dari percakapan pengguna.", "Core capability"],
-  ["Check Reservation", "Mengarahkan pengecekan reservasi berdasarkan detail yang tersedia.", "Core capability"],
+  ["Create Reservation", "Membantu menyusun detail reservasi dari percakapan pengguna.", "Available in public demo"],
+  ["Check Reservation", "Mengarahkan pengecekan reservasi berdasarkan detail yang tersedia.", "Available in public demo"],
   ["Update Reservation", "Menyiapkan perubahan reservasi setelah detailnya dikonfirmasi.", "Implemented in AURA"],
   ["Cancel Reservation", "Mendukung alur pembatalan dengan pengecekan data yang relevan.", "Implemented in AURA"],
   ["Indonesian NLU", "Memahami variasi bahasa Indonesia dalam intent yang umum digunakan.", "Core capability"],
-  ["Admin Handoff", "Menyediakan jalur aman ketika percakapan membutuhkan bantuan manusia.", "Demo integration pending"],
+  ["Admin Handoff", "Menyediakan jalur aman ketika percakapan membutuhkan bantuan manusia.", "Not exposed publicly"],
 ] as const;
 
 const solutionFlow = [
@@ -85,7 +85,7 @@ export default function AuraCaseStudyPage() {
               intent pengguna, workflow reservasi, hingga jalur handoff ke admin.
             </p>
             <div className="mt-8 flex flex-wrap gap-2" aria-label="Metadata proyek">
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs text-emerald-300">STATUS: DEVELOPMENT</span>
+              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs text-emerald-300">STATUS: LIVE DEMO</span>
               <span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 font-mono text-xs text-slate-400">ROLE: {siteConfig.featuredProject.role}</span>
             </div>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -102,8 +102,8 @@ export default function AuraCaseStudyPage() {
               {[
                 ["MODE", "RESERVATION AGENT"],
                 ["LANGUAGE", "INDONESIAN"],
-                ["CHANNEL", "TELEGRAM / WEB PLANNED"],
-                ["STATE", "DEVELOPMENT"],
+                ["CHANNEL", "TELEGRAM / PUBLIC WEB DEMO"],
+                ["STATE", "LIVE DEMO AVAILABLE"],
                 ["CORE", "ACTIVE"],
               ].map(([label, value]) => (
                 <div key={label} className="flex items-start justify-between gap-5 border-b border-slate-800 pb-3 last:border-0 last:pb-0">
@@ -113,7 +113,7 @@ export default function AuraCaseStudyPage() {
               ))}
             </dl>
             <p className="border-t border-slate-800 px-5 py-3 text-xs leading-5 text-slate-500">
-              Web demo interface dalam pengembangan.
+              Live self-hosted demo. Availability may vary when the backend is offline.
             </p>
           </TerminalPanel>
         </PageContainer>
@@ -226,12 +226,12 @@ export default function AuraCaseStudyPage() {
       <section className="bg-[#080e19] py-16 sm:py-24">
         <PageContainer>
           <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">10 / Current status</p>
-          <div className="mt-8 grid gap-5 lg:grid-cols-2"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Sudah tersedia pada AURA</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Create, update, cancel, dan check reservation.", "Indonesian NLU.", "Telegram integration.", "Admin handoff."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-7"><h2 className="text-xl font-semibold text-slate-100">Sedang dikembangkan untuk portofolio</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Public web demo dan isolated demo session.", "Demo database serta rate limiting.", "Demo-specific handoff.", "Deployment."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-400" aria-hidden="true" />{item}</li>)}</ul></article></div>
+          <div className="mt-8 grid gap-5 lg:grid-cols-3"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Available today</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Conversational public demo with session handling.", "Create, view, update, and cancel reservation flows.", "Persistence-backed workflows and safe public references.", "Browser-facing portfolio integration through a server-side BFF."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Engineering safeguards</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Server-side BFF boundary.", "Replay and idempotency protection.", "Rate limiting and safe error handling.", "Backup and restore verification for persisted data."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-7"><h2 className="text-xl font-semibold text-slate-100">Intentionally not public</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Owner and admin controls.", "Private credentials and service tokens.", "Internal operational interfaces.", "Infrastructure secrets."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-slate-500" aria-hidden="true" />{item}</li>)}</ul></article></div>
         </PageContainer>
       </section>
 
       <section className="border-t border-slate-800 bg-[#050a13] py-16 sm:py-24">
-        <PageContainer><div className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-slate-900 px-7 py-12 sm:px-12 sm:py-16"><div className="absolute -right-24 -top-24 size-80 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden="true" /><div className="relative max-w-3xl"><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Continue the exploration</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-5xl">Ingin melihat arah pengembangan AURA?</h2><p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">Interface demo masih dalam pengembangan backend integration. Anda tetap dapat melihat placeholder interface, arsitektur, atau memulai percakapan.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/demo/aura">Coba interface demo</ButtonLink><ButtonLink href="/architecture" variant="secondary">Lihat arsitektur</ButtonLink><ButtonLink href="/contact" variant="secondary">Hubungi saya</ButtonLink></div></div></div></PageContainer>
+        <PageContainer><div className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-slate-900 px-7 py-12 sm:px-12 sm:py-16"><div className="absolute -right-24 -top-24 size-80 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden="true" /><div className="relative max-w-3xl"><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Continue the exploration</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-5xl">Coba AURA dalam demo publik.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">Demo menggunakan portfolio sebagai interface browser dan server-side boundary untuk mengakses AURA. Karena self-hosted, availability dapat bervariasi saat backend offline.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/demo/aura">Coba Demo Live</ButtonLink><ButtonLink href="/architecture" variant="secondary">Lihat arsitektur</ButtonLink><ButtonLink href="/contact" variant="secondary">Hubungi saya</ButtonLink></div></div></div></PageContainer>
       </section>
     </>
   );

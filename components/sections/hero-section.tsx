@@ -10,25 +10,25 @@ export function HeroSection() {
             AI Engineer · Jakarta
           </p>
           <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
-            Saya membangun sistem AI yang dapat digunakan di dunia nyata.
+            Saya membangun sistem AI dan software yang siap digunakan.
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-slate-400 sm:text-lg">
-            Saya fokus pada AI agent, backend yang aman, dan pengalaman pengguna yang sederhana.
+            Saya menggabungkan antarmuka percakapan, logika aplikasi, API, persistence, dan pengamanan yang praktis.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/projects">Lihat Proyek</ButtonLink>
-            <ButtonLink href="/about" variant="secondary">Tentang Saya</ButtonLink>
+            <ButtonLink href="/demo/aura">Coba AURA</ButtonLink>
+            <ButtonLink href="/projects" variant="secondary">Lihat Proyek</ButtonLink>
           </div>
           <p className="mt-6 text-sm text-slate-500">Available for selected projects.</p>
         </div>
 
         <aside className="border-l border-slate-800 pl-6 sm:pl-8">
-          <p className="text-sm font-medium text-slate-200">Current work</p>
+          <p className="text-sm font-medium text-slate-200">Flagship project</p>
           <p className="mt-4 text-lg leading-8 text-slate-400">
-            Saat ini saya sedang mengembangkan AURA, AI reservation agent dengan arsitektur backend terisolasi dan integrasi web yang aman.
+            AURA adalah bukti utama: AI assistant untuk percakapan dan alur reservasi yang dapat dicoba melalui demo portofolio.
           </p>
           <div className="mt-7 border-t border-slate-800 pt-5 text-sm text-cyan-200">
-            AURA · web integration in progress
+            Live self-hosted demo. Availability may vary when the backend is offline.
           </div>
         </aside>
       </PageContainer>

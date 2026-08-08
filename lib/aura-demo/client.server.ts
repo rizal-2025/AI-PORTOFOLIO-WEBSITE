@@ -46,9 +46,19 @@ type AuraRequestDiagnosticCode =
   | "APPLICATION_TIMEOUT"
   | "SESSION_REQUIRED"
   | "UPSTREAM_FETCH_FAILED"
+  | "UPSTREAM_BODY_TIMEOUT"
+  | "UPSTREAM_CONNECT_TIMEOUT"
+  | "UPSTREAM_CONNECTION_REFUSED"
+  | "UPSTREAM_CONNECTION_RESET"
+  | "UPSTREAM_DNS_NOT_FOUND"
+  | "UPSTREAM_DNS_TEMPORARY_FAILURE"
+  | "UPSTREAM_HEADERS_TIMEOUT"
+  | "UPSTREAM_HOST_UNREACHABLE"
   | "UPSTREAM_INVALID_RESPONSE"
+  | "UPSTREAM_NETWORK_UNREACHABLE"
   | "UPSTREAM_RATE_LIMITED"
   | "UPSTREAM_REQUEST_CONFLICT"
+  | "UPSTREAM_TLS_FAILED"
   | "UPSTREAM_TIMEOUT"
   | "UPSTREAM_UNAVAILABLE";
 
@@ -93,15 +103,94 @@ const ERROR_ENVELOPE_KEYS = ["code", "detail"] as const;
 const JSON_PROPERTY_PATTERN = /"((?:\\.|[^"\\])*)"\s*:/g;
 const JSON_CONTENT_TYPE_PATTERN =
   /^application\/json(?:\s*;\s*charset=utf-8)?$/i;
+const MAX_TRANSPORT_ERROR_NODES = 12;
+const MAX_AGGREGATE_ERRORS = 4;
+const TRANSPORT_DIAGNOSTIC_CODES = new Map<
+  string,
+  AuraRequestDiagnosticCode
+>([
+  ["UND_ERR_CONNECT_TIMEOUT", "UPSTREAM_CONNECT_TIMEOUT"],
+  ["ETIMEDOUT", "UPSTREAM_CONNECT_TIMEOUT"],
+  ["UND_ERR_HEADERS_TIMEOUT", "UPSTREAM_HEADERS_TIMEOUT"],
+  ["UND_ERR_BODY_TIMEOUT", "UPSTREAM_BODY_TIMEOUT"],
+  ["ENOTFOUND", "UPSTREAM_DNS_NOT_FOUND"],
+  ["EAI_AGAIN", "UPSTREAM_DNS_TEMPORARY_FAILURE"],
+  ["ECONNREFUSED", "UPSTREAM_CONNECTION_REFUSED"],
+  ["ECONNRESET", "UPSTREAM_CONNECTION_RESET"],
+  ["EPIPE", "UPSTREAM_CONNECTION_RESET"],
+  ["ENETUNREACH", "UPSTREAM_NETWORK_UNREACHABLE"],
+  ["EHOSTUNREACH", "UPSTREAM_HOST_UNREACHABLE"],
+  ["CERT_HAS_EXPIRED", "UPSTREAM_TLS_FAILED"],
+  ["UNABLE_TO_VERIFY_LEAF_SIGNATURE", "UPSTREAM_TLS_FAILED"],
+  ["DEPTH_ZERO_SELF_SIGNED_CERT", "UPSTREAM_TLS_FAILED"],
+  ["ERR_TLS_CERT_ALTNAME_INVALID", "UPSTREAM_TLS_FAILED"],
+]);
+
+function readErrorField(error: unknown, key: string): unknown {
+  if (
+    (typeof error !== "object" || error === null) &&
+    typeof error !== "function"
+  ) {
+    return undefined;
+  }
+  try {
+    return Reflect.get(error, key);
+  } catch {
+    return undefined;
+  }
+}
+
+function transportDiagnosticCodeFor(
+  error: unknown,
+): AuraRequestDiagnosticCode | undefined {
+  const pending: unknown[] = [error];
+  const seen = new Set<unknown>();
+
+  while (pending.length > 0 && seen.size < MAX_TRANSPORT_ERROR_NODES) {
+    const candidate = pending.shift();
+    if (
+      (typeof candidate !== "object" || candidate === null) &&
+      typeof candidate !== "function"
+    ) {
+      continue;
+    }
+    if (seen.has(candidate)) {
+      continue;
+    }
+    seen.add(candidate);
+
+    const rawCode = readErrorField(candidate, "code");
+    if (typeof rawCode === "string") {
+      const safeCode = TRANSPORT_DIAGNOSTIC_CODES.get(rawCode);
+      if (safeCode !== undefined) {
+        return safeCode;
+      }
+    }
+
+    const cause = readErrorField(candidate, "cause");
+    if (cause !== undefined) {
+      pending.push(cause);
+    }
+    const aggregateErrors = readErrorField(candidate, "errors");
+    if (Array.isArray(aggregateErrors)) {
+      pending.push(...aggregateErrors.slice(0, MAX_AGGREGATE_ERRORS));
+    }
+  }
+
+  return undefined;
+}
 
 function diagnosticCodeFor(
   error: unknown,
   stage: AuraRequestStage,
 ): AuraRequestDiagnosticCode {
   if (!(error instanceof AuraDemoClientError)) {
-    return stage === "fetch"
-      ? "UPSTREAM_FETCH_FAILED"
-      : "UPSTREAM_UNAVAILABLE";
+    return (
+      transportDiagnosticCodeFor(error) ??
+      (stage === "fetch"
+        ? "UPSTREAM_FETCH_FAILED"
+        : "UPSTREAM_UNAVAILABLE")
+    );
   }
 
   switch (error.kind) {

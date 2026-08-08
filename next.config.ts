@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
+export function resolveNextOutputMode(
+  vercel: string | undefined,
+): NextConfig["output"] {
+  return vercel === "1" ? undefined : "standalone";
+}
+
+const output = resolveNextOutputMode(process.env.VERCEL);
 const nextConfig: NextConfig = {
-  output: "standalone",
+  ...(output === undefined ? {} : { output }),
   poweredByHeader: false,
   async headers() {
     return [

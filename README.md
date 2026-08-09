@@ -35,6 +35,26 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Responsive viewport QA
+
+Run the automated responsive layout checks with:
+
+```powershell
+npm.cmd run test:responsive
+```
+
+The suite uses CSS viewport ranges rather than device-specific rules: mobile
+(320–430px), tablet (768–1024px), and desktop (1280–1920px). It checks the
+homepage and shared navigation for horizontal overflow, CTA containment,
+readable hero and AURA text lines, and the appropriate navigation mode. Chromium
+also produces a small set of review screenshots in the ignored test output.
+
+For local browser engines, install the Playwright browsers once:
+
+```powershell
+npx.cmd playwright install chromium firefox webkit
+```
+
 ## Backup ke GitHub
 
 Script `scripts/backup-to-github.ps1` memvalidasi repository, menjalankan lint,

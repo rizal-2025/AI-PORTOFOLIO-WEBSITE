@@ -56,6 +56,7 @@ async function expectNoMeaningfulOverflow(page: Page) {
     elements.flatMap((element) => {
       const styles = window.getComputedStyle(element);
       const rect = element.getBoundingClientRect();
+      if (element.matches(".sr-only") && !element.matches(":focus")) return [];
       if (styles.display === "none" || styles.visibility === "hidden" || rect.width === 0 || rect.height === 0) return [];
       return rect.left < -1 || rect.right > window.innerWidth + 1
         ? [{ tag: element.tagName, text: (element.textContent ?? "").trim().slice(0, 80), left: rect.left, right: rect.right }]

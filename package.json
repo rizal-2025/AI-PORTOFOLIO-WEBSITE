@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:aura-demo": "node --import ./tests/aura-demo-loader.mjs --test tests/aura-demo-*.test.mts",
+    "test:responsive": "playwright test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui/button-link";
 export function HeroSection() {
   return (
     <section className="border-b border-slate-800 bg-slate-950">
-      <PageContainer className="grid min-w-0 min-h-[calc(100svh-4rem)] items-center gap-12 py-20 sm:py-28 lg:min-h-0 lg:py-24 lg:grid-cols-[1.15fr_0.85fr]">
+      <PageContainer className="grid min-w-0 min-h-[calc(100svh-4rem)] items-center gap-12 py-20 sm:py-28 lg:min-h-0 lg:pt-16 lg:pb-24 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="min-w-0 max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">
             AI Engineer · Jakarta

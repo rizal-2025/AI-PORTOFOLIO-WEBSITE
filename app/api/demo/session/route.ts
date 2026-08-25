@@ -27,6 +27,7 @@ import {
   upstreamConfigOrError,
 } from "@/lib/aura-demo/route.server";
 import { isValidAuraSessionToken } from "@/lib/aura-demo/token.server";
+import { getRequestLocale } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,9 +37,10 @@ async function createSessionResponse(
   config: AuraDemoConfig,
   clientSubject: string,
   clearExistingCookieOnFailure: boolean,
+  locale: ReturnType<typeof getRequestLocale>,
 ): Promise<NextResponse> {
   try {
-    const created = await createAuraDemoSession(config, clientSubject);
+    const created = await createAuraDemoSession(config, clientSubject, locale);
     const body: PublicCreateSessionResponse = {
       session: created.session,
     };
@@ -72,6 +74,7 @@ async function createSessionResponse(
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   const requestError = await validatePostSessionRequest(request);
   if (requestError !== null) {
     return publicError(requestError);
@@ -107,10 +110,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (existingCookie === undefined) {
-    return createSessionResponse(config, clientSubject, false);
+    return createSessionResponse(config, clientSubject, false, locale);
   }
   if (locallyInvalid) {
-    return createSessionResponse(config, clientSubject, true);
+    return createSessionResponse(config, clientSubject, true, locale);
   }
 
   try {
@@ -118,6 +121,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       config,
       existingCookie.value,
       clientSubject,
+      locale,
     );
     const body: PublicCreateSessionResponse = {
       session: current.session,
@@ -128,13 +132,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       error instanceof AuraDemoClientError &&
       error.kind === "session-required"
     ) {
-      return createSessionResponse(config, clientSubject, true);
+      return createSessionResponse(config, clientSubject, true, locale);
     }
     return clientErrorResponse(error);
   }
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
+  const locale = getRequestLocale(request);
   const requestError = validateGetSessionRequest(request);
   if (requestError !== null) {
     return publicError(requestError);
@@ -174,6 +179,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       config,
       existingCookie.value,
       clientSubject,
+      locale,
     );
     return publicJson(current, 200);
   } catch (error) {

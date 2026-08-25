@@ -17,6 +17,8 @@ import {
   type PublicDemoResetResponse,
   type PublicReservationMutation,
 } from "@/lib/aura-demo/contracts";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { DEFAULT_LOCALE, type SupportedLocale } from "@/lib/i18n/locale";
 
 const RESPONSE_LIMIT_BYTES = 64 * 1024;
 const BROWSER_TIMEOUT_MS = 35_000;
@@ -24,42 +26,23 @@ const REQUEST_ID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
 const PUBLIC_ERROR_BY_STATUS = {
-  400: {
-    code: "INVALID_REQUEST",
-    message: "Pesan tidak valid. Periksa isinya lalu coba lagi.",
-  },
-  401: {
-    code: "SESSION_REQUIRED",
-    message: "Sesi demo berakhir. Mulai sesi baru untuk melanjutkan.",
-  },
-  403: {
-    code: "FORBIDDEN",
-    message: "Permintaan ini tidak diizinkan.",
-  },
-  409: {
-    code: "REQUEST_CONFLICT",
-    message: "Status demo berubah. Sinkronkan sesi sebelum mencoba lagi.",
-  },
-  429: {
-    code: "RATE_LIMITED",
-    message: "Batas permintaan tercapai. Tunggu sebentar lalu coba lagi.",
-  },
-  502: {
-    code: "UPSTREAM_INVALID_RESPONSE",
-    message: "Respons layanan demo tidak dapat diverifikasi.",
-  },
-  503: {
-    code: "SERVICE_UNAVAILABLE",
-    message: "Layanan demo sedang tidak tersedia.",
-  },
-  504: {
-    code: "UPSTREAM_TIMEOUT",
-    message: "Layanan demo membutuhkan waktu terlalu lama.",
-  },
+  400: { code: "INVALID_REQUEST", messageKey: "invalid" },
+  401: { code: "SESSION_REQUIRED", messageKey: "session" },
+  403: { code: "FORBIDDEN", messageKey: "forbidden" },
+  409: { code: "REQUEST_CONFLICT", messageKey: "conflict" },
+  429: { code: "RATE_LIMITED", messageKey: "rate" },
+  502: { code: "UPSTREAM_INVALID_RESPONSE", messageKey: "invalidResponse" },
+  503: { code: "SERVICE_UNAVAILABLE", messageKey: "unavailable" },
+  504: { code: "UPSTREAM_TIMEOUT", messageKey: "timeout" },
 } as const satisfies Record<
   number,
-  { code: PublicDemoErrorCode; message: string }
+  { code: PublicDemoErrorCode; messageKey: string }
 >;
+
+function errorMessage(status: KnownErrorStatus, locale: SupportedLocale): string {
+  const key = PUBLIC_ERROR_BY_STATUS[status].messageKey;
+  return getDictionary(locale).demo.errors[key];
+}
 
 type KnownErrorStatus = keyof typeof PUBLIC_ERROR_BY_STATUS;
 
@@ -277,13 +260,13 @@ function parseRetryAfter(value: string | null): number | null {
     : null;
 }
 
-async function readJson(response: Response): Promise<unknown> {
+async function readJson(response: Response, locale: SupportedLocale): Promise<unknown> {
   const text = await response.text();
   if (new TextEncoder().encode(text).byteLength > RESPONSE_LIMIT_BYTES) {
     throw new DemoBrowserError(
       502,
       "UPSTREAM_INVALID_RESPONSE",
-      PUBLIC_ERROR_BY_STATUS[502].message,
+      errorMessage(502, locale),
     );
   }
   try {
@@ -292,7 +275,7 @@ async function readJson(response: Response): Promise<unknown> {
     throw new DemoBrowserError(
       502,
       "UPSTREAM_INVALID_RESPONSE",
-      PUBLIC_ERROR_BY_STATUS[502].message,
+      errorMessage(502, locale),
     );
   }
 }
@@ -301,13 +284,13 @@ function isKnownStatus(status: number): status is KnownErrorStatus {
   return Object.prototype.hasOwnProperty.call(PUBLIC_ERROR_BY_STATUS, status);
 }
 
-async function throwPublicError(response: Response): Promise<never> {
+async function throwPublicError(response: Response, locale: SupportedLocale): Promise<never> {
   const definition = isKnownStatus(response.status)
     ? PUBLIC_ERROR_BY_STATUS[response.status]
     : PUBLIC_ERROR_BY_STATUS[503];
   let value: unknown = null;
   try {
-    value = await readJson(response);
+    value = await readJson(response, locale);
   } catch {
     // The browser only displays the local safe message below.
   }
@@ -320,7 +303,9 @@ async function throwPublicError(response: Response): Promise<never> {
   throw new DemoBrowserError(
     response.status,
     code,
-    envelopeMatches ? definition.message : PUBLIC_ERROR_BY_STATUS[503].message,
+    envelopeMatches
+      ? errorMessage(response.status as KnownErrorStatus, locale)
+      : errorMessage(503, locale),
     response.status === 429
       ? parseRetryAfter(response.headers.get("Retry-After"))
       : null,
@@ -331,6 +316,7 @@ async function requestJson<T>(
   path: "/api/demo/session" | "/api/demo/chat" | "/api/demo/reservations" | "/api/demo/reset",
   init: RequestInit,
   parser: (value: unknown) => T | null,
+  locale: SupportedLocale,
 ): Promise<T> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), BROWSER_TIMEOUT_MS);
@@ -343,14 +329,14 @@ async function requestJson<T>(
       signal: controller.signal,
     });
     if (!response.ok) {
-      return await throwPublicError(response);
+      return await throwPublicError(response, locale);
     }
-    const parsed = parser(await readJson(response));
+    const parsed = parser(await readJson(response, locale));
     if (parsed === null) {
       throw new DemoBrowserError(
         502,
         "UPSTREAM_INVALID_RESPONSE",
-        PUBLIC_ERROR_BY_STATUS[502].message,
+        errorMessage(502, locale),
       );
     }
     return parsed;
@@ -361,36 +347,37 @@ async function requestJson<T>(
     throw new DemoBrowserError(
       0,
       "NETWORK_ERROR",
-      "Koneksi ke demo terputus. Periksa jaringan lalu coba lagi.",
+      getDictionary(locale).demo.errors.network,
     );
   } finally {
     window.clearTimeout(timeout);
   }
 }
 
-export function createDemoRequestId(): string {
+export function createDemoRequestId(locale: SupportedLocale = DEFAULT_LOCALE): string {
   const requestId = crypto.randomUUID();
   if (!REQUEST_ID_PATTERN.test(requestId)) {
     throw new DemoBrowserError(
       0,
       "NETWORK_ERROR",
-      "Browser tidak dapat membuat identitas permintaan yang aman.",
+      getDictionary(locale).demo.errors.requestId,
     );
   }
   return requestId;
 }
 
-export function createDemoSession(): Promise<PublicCreateSessionResponse> {
-  return requestJson("/api/demo/session", { method: "POST" }, parseCreateSession);
+export function createDemoSession(locale: SupportedLocale = DEFAULT_LOCALE): Promise<PublicCreateSessionResponse> {
+  return requestJson("/api/demo/session", { method: "POST" }, parseCreateSession, locale);
 }
 
-export function getDemoSession(): Promise<PublicCurrentSessionResponse> {
-  return requestJson("/api/demo/session", { method: "GET" }, parseBrowserCurrentSession);
+export function getDemoSession(locale: SupportedLocale = DEFAULT_LOCALE): Promise<PublicCurrentSessionResponse> {
+  return requestJson("/api/demo/session", { method: "GET" }, parseBrowserCurrentSession, locale);
 }
 
 export function postDemoChat(
   message: string,
   requestId: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublicDemoChatResponse> {
   return requestJson(
     "/api/demo/chat",
@@ -400,17 +387,19 @@ export function postDemoChat(
       body: JSON.stringify({ message, requestId }),
     },
     parseBrowserChatResponse,
+    locale,
   );
 }
 
-export function getDemoReservations(): Promise<PublicDemoReservationListResponse> {
+export function getDemoReservations(locale: SupportedLocale = DEFAULT_LOCALE): Promise<PublicDemoReservationListResponse> {
   return requestJson(
     "/api/demo/reservations",
     { method: "GET" },
     parseBrowserReservationList,
+    locale,
   );
 }
 
-export function resetDemoSession(): Promise<PublicDemoResetResponse> {
-  return requestJson("/api/demo/reset", { method: "POST" }, parseReset);
+export function resetDemoSession(locale: SupportedLocale = DEFAULT_LOCALE): Promise<PublicDemoResetResponse> {
+  return requestJson("/api/demo/reset", { method: "POST" }, parseReset, locale);
 }

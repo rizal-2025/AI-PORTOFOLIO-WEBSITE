@@ -70,6 +70,7 @@ test("chat client sends server-only headers once and strips internal reply ID", 
     assert.equal(headers.get("X-BFF-Service-Token"), config.serviceToken);
     assert.equal(headers.get("X-Demo-Client-Subject"), clientSubject);
     assert.equal(headers.get("X-Demo-Session-Token"), sessionToken);
+    assert.equal(headers.get("X-AURA-Locale"), "id-ID");
     assert.deepEqual(JSON.parse(String(init?.body)), {
       message: "Halo",
       requestId,
@@ -99,6 +100,26 @@ test("chat client sends server-only headers once and strips internal reply ID", 
       createdAt: timestamp,
     });
     assert.equal(JSON.stringify(result).includes('"id"'), false);
+  });
+});
+
+test("chat client forwards only a typed selected locale", async () => {
+  await withFetch(async (_input, init) => {
+    const headers = new Headers(init?.headers);
+    assert.equal(headers.get("X-AURA-Locale"), "en-US");
+    return jsonResponse({
+      reply: { id: 1, role: "assistant", content: "Safe response.", createdAt: timestamp },
+      reservationMutation: null,
+      handoff: null,
+    });
+  }, async () => {
+    await postAuraDemoChat(
+      config,
+      sessionToken,
+      clientSubject,
+      { message: "Hello", requestId },
+      "en-US",
+    );
   });
 });
 

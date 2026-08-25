@@ -7,6 +7,7 @@ import {
   clientErrorResponseForSession,
   requireAuraDemoSession,
 } from "@/lib/aura-demo/route.server";
+import { getRequestLocale } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       context.config,
       context.sessionToken,
       context.clientSubject,
+      getRequestLocale(request),
     );
     return publicJson(result, 200);
   } catch (error) {

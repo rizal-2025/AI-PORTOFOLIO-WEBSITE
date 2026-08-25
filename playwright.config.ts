@@ -4,7 +4,7 @@ const isCi = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "responsive-layout.spec.ts",
+  testMatch: ["responsive-layout.spec.ts", "localization.spec.ts"],
   fullyParallel: false,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,

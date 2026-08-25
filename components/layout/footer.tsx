@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
 import { siteConfig } from "@/config/site";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function Footer() {
+export function Footer({ copy }: Readonly<{ copy: Dictionary["global"] }>) {
   return (
     <footer className="border-t border-slate-800 bg-slate-950">
       <PageContainer className="grid gap-8 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -12,7 +13,7 @@ export function Footer() {
         </div>
         <div className="sm:text-right">
           <Link href="/contact" className="text-sm font-semibold text-cyan-300 transition-colors hover:text-cyan-200">
-            Mulai percakapan <span aria-hidden="true">→</span>
+            {copy.startConversation} <span aria-hidden="true">→</span>
           </Link>
           {siteConfig.contact.email ? (
             <a href={`mailto:${siteConfig.contact.email}`} className="mt-3 inline-flex break-all text-xs text-slate-500 transition-colors hover:text-cyan-200">

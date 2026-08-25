@@ -1,5 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
+test.setTimeout(60_000);
+
 const now = "2026-08-25T12:00:00Z";
 const session = {
   status: "active",

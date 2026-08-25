@@ -2,14 +2,17 @@ import type { Metadata } from "next";
 import { PageContainer } from "@/components/layout/page-container";
 import { ProjectCard } from "@/components/ui/project-card";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
+import { EnglishProjectsPage } from "@/components/i18n/english-static-pages";
 import { projects } from "@/config/site";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Projects",
   description: "Kumpulan proyek AI Agent dan backend engineering.",
 };
 
-export default function ProjectsPage() {
+export default async function ProjectsPage() {
+  if ((await getServerLocale()) === "en-US") return <EnglishProjectsPage />;
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]">

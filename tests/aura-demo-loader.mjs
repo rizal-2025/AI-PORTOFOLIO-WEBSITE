@@ -6,6 +6,13 @@ const repositoryRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 
 registerHooks({
   resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") {
+      return {
+        format: "module",
+        shortCircuit: true,
+        url: "data:text/javascript,export%20{}",
+      };
+    }
     if (specifier === "next/headers") {
       return nextResolve(
         new URL("./next-headers-shim.mts", import.meta.url).href,

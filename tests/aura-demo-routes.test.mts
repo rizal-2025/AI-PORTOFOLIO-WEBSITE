@@ -14,6 +14,7 @@ type AuraTestState = typeof globalThis & {
   __auraDemoCookieValue?: string;
   __auraDemoForceSessionFailure?: boolean;
   __auraDemoSessionCreateCalls?: number;
+  __auraExpectedLocale?: "id-ID" | "en-US";
 };
 
 const state = globalThis as AuraTestState;
@@ -82,6 +83,7 @@ test.before(() => {
       "synthetic-service-token-for-route-tests",
     );
     assert.match(headers.get("X-Demo-Client-Subject") ?? "", /^[0-9a-f]{64}$/);
+    assert.equal(headers.get("X-AURA-Locale"), state.__auraExpectedLocale ?? "id-ID");
     const scoped = url.pathname !== "/internal/demo/sessions";
     if (scoped) {
       const receivedToken = headers.get("X-Demo-Session-Token");
@@ -236,6 +238,7 @@ test.after(() => {
   delete state.__auraDemoCookieValue;
   delete state.__auraDemoForceSessionFailure;
   delete state.__auraDemoSessionCreateCalls;
+  delete state.__auraExpectedLocale;
 });
 
 test("session routes set HttpOnly cookie and expose no token or internal ID", async () => {
@@ -351,6 +354,32 @@ test("chat, reservation, and reset routes expose exact public allowlists", async
   assert.equal(reset.headers.get("set-cookie"), null);
 });
 
+test("BFF forwards one allowlisted locale channel and defaults invalid cookies", async () => {
+  state.__auraDemoCookieValue = sessionToken;
+  state.__auraExpectedLocale = "en-US";
+  const english = await postChat(
+    publicRequest(
+      "/api/demo/chat",
+      "POST",
+      JSON.stringify({ message: "Hello", requestId }),
+      { "content-type": "application/json", cookie: "aura_locale=en-US" },
+    ),
+  );
+  assert.equal(english.status, 200);
+
+  state.__auraExpectedLocale = "id-ID";
+  const invalid = await postChat(
+    publicRequest(
+      "/api/demo/chat",
+      "POST",
+      JSON.stringify({ message: "Halo", requestId }),
+      { "content-type": "application/json", cookie: "aura_locale=fr-FR" },
+    ),
+  );
+  assert.equal(invalid.status, 200);
+  delete state.__auraExpectedLocale;
+});
+
 test("routes reject browser auth headers, cross-site calls, bodies, and missing sessions", async () => {
   state.__auraDemoCookieValue = sessionToken;
   const browserAuth = await postChat(
@@ -378,6 +407,19 @@ test("routes reject browser auth headers, cross-site calls, bodies, and missing 
     ),
   );
   assert.equal(browserSubject.status, 400);
+
+  const browserLocale = await postChat(
+    publicRequest(
+      "/api/demo/chat",
+      "POST",
+      JSON.stringify({ message: "Halo", requestId }),
+      {
+        "content-type": "application/json",
+        "x-aura-locale": "en-US",
+      },
+    ),
+  );
+  assert.equal(browserLocale.status, 400);
 
   const crossSite = await postChat(
     publicRequest(

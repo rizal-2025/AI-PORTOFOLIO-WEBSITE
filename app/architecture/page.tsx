@@ -3,6 +3,8 @@ import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
+import { EnglishArchitecturePage } from "@/components/i18n/english-static-pages";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Architecture",
@@ -114,7 +116,8 @@ const decisions = [
   ["Handoff simulasi di demo", "Jalur demo direncanakan aman tanpa menghubungi admin operasional."],
 ] as const;
 
-export default function ArchitecturePage() {
+export default async function ArchitecturePage() {
+  if ((await getServerLocale()) === "en-US") return <EnglishArchitecturePage />;
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]">

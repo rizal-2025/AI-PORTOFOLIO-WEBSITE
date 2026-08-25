@@ -17,6 +17,8 @@ import type {
   PublicDemoReservation,
   PublicDemoSession,
 } from "@/lib/aura-demo/contracts";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { SupportedLocale } from "@/lib/i18n/locale";
 
 type SessionState = "checking" | "required" | "active";
 type PendingAction =
@@ -27,17 +29,18 @@ type PendingAction =
   | null;
 
 const MAX_MESSAGE_CODEPOINTS = 1_000;
+const BUTTON_RELOAD_ATTRIBUTES = { autoComplete: "off" } as Record<string, string>;
 
-function formatTimestamp(value: string): string {
-  return new Intl.DateTimeFormat("id-ID", {
+function formatTimestamp(value: string, locale: SupportedLocale): string {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
 }
 
-function formatReservationDate(date: string, time: string): string {
+function formatReservationDate(date: string, time: string, locale: SupportedLocale): string {
   const parsed = new Date(`${date}T${time}`);
-  return new Intl.DateTimeFormat("id-ID", {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(parsed);
@@ -45,13 +48,14 @@ function formatReservationDate(date: string, time: string): string {
 
 function mutationMessage(
   operation: "created" | "updated" | "cancelled",
+  copy: Dictionary["demo"],
 ): string {
-  if (operation === "created") return "Reservasi baru tercatat.";
-  if (operation === "updated") return "Reservasi berhasil diperbarui.";
-  return "Reservasi berhasil dibatalkan.";
+  if (operation === "created") return copy.notices.created;
+  if (operation === "updated") return copy.notices.updated;
+  return copy.notices.cancelled;
 }
 
-export function AuraDemoConsole() {
+export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLocale; copy: Dictionary["demo"] }>) {
   const [sessionState, setSessionState] = useState<SessionState>("checking");
   const [session, setSession] = useState<PublicDemoSession | null>(null);
   const [messages, setMessages] = useState<PublicDemoMessage[]>([]);
@@ -87,7 +91,7 @@ export function AuraDemoConsole() {
           : new DemoBrowserError(
               0,
               "NETWORK_ERROR",
-              "Koneksi ke demo terputus. Periksa jaringan lalu coba lagi.",
+              copy.errors.network,
             );
       setError(safeError.message);
       setNotice(null);
@@ -97,37 +101,37 @@ export function AuraDemoConsole() {
       if (safeError.code === "RATE_LIMITED") {
         setRateLimit(
           safeError.retryAfterSeconds === null
-            ? "Coba kembali setelah jeda singkat."
-            : `Coba kembali dalam ${safeError.retryAfterSeconds} detik.`,
+            ? copy.errors.retrySoon
+            : copy.errors.retrySeconds.replace("{seconds}", String(safeError.retryAfterSeconds)),
         );
       } else {
         setRateLimit(null);
       }
     },
-    [clearSession],
+    [clearSession, copy],
   );
 
   const refreshSnapshot = useCallback(async () => {
-    const current = await getDemoSession();
+    const current = await getDemoSession(locale);
     setSessionState("active");
     setSession(current.session);
     setMessages(current.messages);
     setHandoff(current.handoff);
-    const list = await getDemoReservations();
+    const list = await getDemoReservations(locale);
     setReservations(list.reservations);
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     let active = true;
     void (async () => {
       try {
-        const current = await getDemoSession();
+        const current = await getDemoSession(locale);
         if (!active) return;
         setSessionState("active");
         setSession(current.session);
         setMessages(current.messages);
         setHandoff(current.handoff);
-        const list = await getDemoReservations();
+        const list = await getDemoReservations(locale);
         if (active) setReservations(list.reservations);
       } catch (cause) {
         if (active) handleFailure(cause);
@@ -136,7 +140,7 @@ export function AuraDemoConsole() {
     return () => {
       active = false;
     };
-  }, [handleFailure]);
+  }, [handleFailure, locale]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -168,12 +172,12 @@ export function AuraDemoConsole() {
     void runExclusive("session", async () => {
       if (sessionState === "active") {
         await refreshSnapshot();
-        setNotice("Sesi dan riwayat berhasil disinkronkan.");
+        setNotice(copy.notices.synced);
       } else {
-        const created = await createDemoSession();
+        const created = await createDemoSession(locale);
         setSession(created.session);
         await refreshSnapshot();
-        setNotice("Sesi demo aman sudah aktif.");
+        setNotice(copy.notices.activated);
       }
       setRetryRequestId(null);
     });
@@ -181,9 +185,9 @@ export function AuraDemoConsole() {
 
   function handleRefreshReservations() {
     void runExclusive("reservations", async () => {
-      const list = await getDemoReservations();
+      const list = await getDemoReservations(locale);
       setReservations(list.reservations);
-      setNotice("Daftar reservasi diperbarui.");
+      setNotice(copy.notices.reservationsRefreshed);
     });
   }
 
@@ -198,18 +202,18 @@ export function AuraDemoConsole() {
       return;
     }
     void runExclusive("chat", async () => {
-      const requestId = retryRequestId ?? createDemoRequestId();
+      const requestId = retryRequestId ?? createDemoRequestId(locale);
       try {
-        const result = await postDemoChat(message, requestId);
+        const result = await postDemoChat(message, requestId, locale);
         setRetryRequestId(null);
         setDraft("");
         setMessages((current) => [...current, result.reply]);
         if (result.reservationMutation !== null) {
-          setNotice(mutationMessage(result.reservationMutation.operation));
+          setNotice(mutationMessage(result.reservationMutation.operation, copy));
         } else if (result.handoff !== null) {
-          setNotice("Simulasi handoff dicatat tanpa mengirim data eksternal.");
+          setNotice(copy.notices.handoff);
         } else {
-          setNotice("Respons AURA diterima.");
+          setNotice(copy.notices.response);
         }
         await refreshSnapshot();
       } catch (cause) {
@@ -229,11 +233,11 @@ export function AuraDemoConsole() {
   function handleReset() {
     if (!resetArmed) {
       setResetArmed(true);
-      setNotice("Tekan konfirmasi untuk menghapus data sesi demo ini.");
+      setNotice(copy.notices.armReset);
       return;
     }
     void runExclusive("reset", async () => {
-      const result = await resetDemoSession();
+      const result = await resetDemoSession(locale);
       setSession(result.session);
       setMessages([]);
       setReservations([]);
@@ -241,7 +245,7 @@ export function AuraDemoConsole() {
       setDraft("");
       setRetryRequestId(null);
       setResetArmed(false);
-      setNotice("Riwayat dan reservasi demo sudah dikosongkan.");
+      setNotice(copy.notices.reset);
     });
   }
 
@@ -254,10 +258,10 @@ export function AuraDemoConsole() {
         <header className="flex flex-col gap-4 border-b border-slate-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
           <div>
             <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
-              Secure BFF channel
+              {copy.secureChannel}
             </p>
             <h2 id="demo-chat-title" className="mt-2 text-xl font-semibold text-white">
-              Percakapan AURA
+              {copy.conversation}
             </h2>
           </div>
           <div
@@ -275,39 +279,40 @@ export function AuraDemoConsole() {
               aria-hidden="true"
             />
             {sessionState === "active"
-              ? "Sesi aktif"
+              ? copy.sessionActive
               : sessionState === "checking"
-                ? "Memeriksa sesi"
-                : "Sesi diperlukan"}
+                ? copy.checkingSession
+                : copy.sessionRequired}
           </div>
         </header>
 
         <div
           className="min-h-80 space-y-4 px-5 py-6 sm:min-h-[28rem] sm:px-7"
-          aria-label="Riwayat percakapan"
+          aria-label={copy.historyLabel}
         >
           {sessionState === "checking" ? (
-            <p className="text-sm leading-7 text-slate-400">Memuat status sesi secara aman…</p>
+            <p className="text-sm leading-7 text-slate-400">{copy.loadingSession}</p>
           ) : sessionState === "required" ? (
             <div className="mx-auto max-w-md py-14 text-center">
-              <h3 className="text-lg font-semibold text-white">Mulai sesi demo</h3>
+              <h3 className="text-lg font-semibold text-white">{copy.startSessionTitle}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-400">
-                Sesi bersifat sementara. Token disimpan sebagai cookie HttpOnly dan tidak dapat dibaca halaman ini.
+                {copy.sessionCookieHelp}
               </p>
               <button
                 type="button"
+                {...BUTTON_RELOAD_ATTRIBUTES}
                 onClick={handleConnect}
                 disabled={pending !== null}
                 className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-300 px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {pending === "session" ? "Menghubungkan…" : "Mulai sesi"}
+                {pending === "session" ? copy.connecting : copy.startSession}
               </button>
             </div>
           ) : messages.length === 0 ? (
             <div className="mx-auto max-w-md py-14 text-center">
-              <h3 className="text-lg font-semibold text-white">Siap membantu</h3>
+              <h3 className="text-lg font-semibold text-white">{copy.readyTitle}</h3>
               <p className="mt-3 text-sm leading-7 text-slate-400">
-                Tanyakan informasi umum atau coba alur reservasi. Jangan masukkan data pribadi nyata.
+                {copy.readyHelp}
               </p>
             </div>
           ) : (
@@ -330,7 +335,7 @@ export function AuraDemoConsole() {
                         message.role === "user" ? "text-slate-700" : "text-slate-500"
                       }`}
                     >
-                      {message.role === "user" ? "Anda" : "AURA"} · {formatTimestamp(message.createdAt)}
+                      {message.role === "user" ? copy.you : "AURA"} · {formatTimestamp(message.createdAt, locale)}
                     </p>
                   </article>
                 </li>
@@ -349,7 +354,7 @@ export function AuraDemoConsole() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
             <div className="min-w-0 flex-1">
               <label htmlFor="aura-message" className="sr-only">
-                Pesan untuk AURA
+                {copy.messageLabel}
               </label>
               <input
                 id="aura-message"
@@ -364,7 +369,7 @@ export function AuraDemoConsole() {
                 disabled={sessionState !== "active" || pending !== null}
                 maxLength={2_000}
                 autoComplete="off"
-                placeholder="Ketik pesan, lalu tekan Enter…"
+                placeholder={copy.messagePlaceholder}
                 aria-describedby="aura-message-help"
                 className="min-h-12 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm text-white placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
@@ -372,11 +377,12 @@ export function AuraDemoConsole() {
                 id="aura-message-help"
                 className={`mt-2 text-xs ${messageLength > MAX_MESSAGE_CODEPOINTS ? "text-rose-300" : "text-slate-500"}`}
               >
-                {messageLength}/{MAX_MESSAGE_CODEPOINTS} karakter · Enter untuk kirim
+                {messageLength}/{MAX_MESSAGE_CODEPOINTS} {copy.characters} · {copy.enterToSend}
               </p>
             </div>
             <button
-              type="submit"
+            type="submit"
+            {...BUTTON_RELOAD_ATTRIBUTES}
               disabled={
                 sessionState !== "active" ||
                 pending !== null ||
@@ -385,65 +391,66 @@ export function AuraDemoConsole() {
               }
               className="min-h-12 rounded-xl bg-cyan-300 px-6 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {pending === "chat" ? "Mengirim…" : "Kirim pesan"}
+              {pending === "chat" ? copy.sending : copy.sendMessage}
             </button>
           </form>
         </div>
       </section>
 
-      <aside className="space-y-6" aria-label="Kontrol dan status demo">
+      <aside className="space-y-6" aria-label={copy.controlsLabel}>
         <section className="rounded-2xl border border-slate-800 bg-slate-900/45 p-5">
-          <h2 className="text-sm font-semibold text-white">Status sesi</h2>
+          <h2 className="text-sm font-semibold text-white">{copy.sessionStatus}</h2>
           {session === null ? (
             <p className="mt-3 text-sm leading-6 text-slate-400">
-              Belum ada sesi aktif di browser ini.
+              {copy.noActiveSession}
             </p>
           ) : (
             <dl className="mt-4 space-y-3 text-sm">
               <div>
-                <dt className="text-slate-500">Pesan tersimpan</dt>
+                <dt className="text-slate-500">{copy.savedMessages}</dt>
                 <dd className="mt-1 font-medium text-slate-200">{session.messageCount}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Batas idle</dt>
-                <dd className="mt-1 text-slate-300">{formatTimestamp(session.idleExpiresAt)}</dd>
+                <dt className="text-slate-500">{copy.idleLimit}</dt>
+                <dd className="mt-1 text-slate-300">{formatTimestamp(session.idleExpiresAt, locale)}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">Batas absolut</dt>
-                <dd className="mt-1 text-slate-300">{formatTimestamp(session.absoluteExpiresAt)}</dd>
+                <dt className="text-slate-500">{copy.absoluteLimit}</dt>
+                <dd className="mt-1 text-slate-300">{formatTimestamp(session.absoluteExpiresAt, locale)}</dd>
               </div>
             </dl>
           )}
           <button
             type="button"
+            {...BUTTON_RELOAD_ATTRIBUTES}
             onClick={handleConnect}
             disabled={pending !== null}
             className="mt-5 min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm font-semibold text-slate-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "session"
-              ? "Menyinkronkan…"
+              ? copy.syncing
               : sessionState === "active"
-                ? "Sinkronkan ulang"
-                : "Mulai sesi"}
+                ? copy.sync
+                : copy.startSession}
           </button>
         </section>
 
         {handoff !== null ? (
           <section className="rounded-2xl border border-amber-400/25 bg-amber-400/5 p-5">
-            <h2 className="text-sm font-semibold text-amber-200">Simulasi handoff</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{handoff.summary}</p>
+            <h2 className="text-sm font-semibold text-amber-200">{copy.handoff}</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">{copy.handoffSummary}</p>
           </section>
         ) : null}
 
         <section className="rounded-2xl border border-slate-800 bg-slate-900/45 p-5">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-sm font-semibold text-white">Reservasi demo</h2>
+            <h2 className="text-sm font-semibold text-white">{copy.reservations}</h2>
             <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-300">
               {reservations.length}
             </span>
           </div>
           {reservations.length === 0 ? (
-            <p className="mt-4 text-sm leading-6 text-slate-400">Belum ada reservasi pada sesi ini.</p>
+            <p className="mt-4 text-sm leading-6 text-slate-400">{copy.noReservations}</p>
           ) : (
             <ul className="mt-4 space-y-3">
               {reservations.map((reservation) => (
@@ -455,46 +462,49 @@ export function AuraDemoConsole() {
                     <p className="font-mono text-xs text-cyan-200">
                       {reservation.reservationReference}
                     </p>
-                    <span className="text-xs capitalize text-slate-400">{reservation.status}</span>
+                    <span className="text-xs text-slate-400">{copy.status[reservation.status]}</span>
                   </div>
                   <p className="mt-2 text-sm text-slate-300">
-                    {formatReservationDate(reservation.reservationDate, reservation.reservationTime)}
+                    {formatReservationDate(reservation.reservationDate, reservation.reservationTime, locale)}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">{reservation.partySize} orang</p>
+                  <p className="mt-1 text-xs text-slate-500">{reservation.partySize} {copy.people}</p>
                 </li>
               ))}
             </ul>
           )}
           <button
             type="button"
+            {...BUTTON_RELOAD_ATTRIBUTES}
             onClick={handleRefreshReservations}
             disabled={sessionState !== "active" || pending !== null}
             className="mt-5 min-h-11 w-full rounded-xl border border-slate-700 px-4 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {pending === "reservations" ? "Memuat…" : "Refresh reservasi"}
+            {pending === "reservations" ? copy.loading : copy.refreshReservations}
           </button>
         </section>
 
         <section className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
-          <h2 className="text-sm font-semibold text-white">Reset demo</h2>
+          <h2 className="text-sm font-semibold text-white">{copy.resetDemo}</h2>
           <p className="mt-3 text-sm leading-6 text-slate-400">
-            Mengosongkan percakapan dan reservasi demo, tanpa mengganti sesi aktif.
+            {copy.resetHelp}
           </p>
           <button
             type="button"
+            {...BUTTON_RELOAD_ATTRIBUTES}
             onClick={handleReset}
             disabled={sessionState !== "active" || pending !== null}
             className="mt-5 min-h-11 w-full rounded-xl border border-rose-300/30 px-4 text-sm font-semibold text-rose-200 transition hover:bg-rose-300/10 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "reset"
-              ? "Mereset…"
+              ? copy.resetting
               : resetArmed
-                ? "Konfirmasi reset"
-                : "Reset data demo"}
+                ? copy.confirmReset
+                : copy.resetData}
           </button>
           {resetArmed ? (
             <button
               type="button"
+              {...BUTTON_RELOAD_ATTRIBUTES}
               onClick={() => {
                 setResetArmed(false);
                 setNotice(null);
@@ -502,7 +512,7 @@ export function AuraDemoConsole() {
               disabled={pending !== null}
               className="mt-2 min-h-10 w-full text-sm font-medium text-slate-400 hover:text-white disabled:opacity-50"
             >
-              Batal
+              {copy.cancel}
             </button>
           ) : null}
         </section>

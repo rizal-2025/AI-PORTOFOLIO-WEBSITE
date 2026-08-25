@@ -9,6 +9,7 @@ import {
   type SafeRateLimitHeaders,
 } from "@/lib/aura-demo/contracts";
 import type { PublicDemoChatRequest } from "@/lib/aura-demo/request";
+import { DEFAULT_LOCALE, type SupportedLocale } from "@/lib/i18n/locale";
 import {
   parseAuraChatResponse,
   parseAuraCreateSession,
@@ -700,6 +701,7 @@ async function throwForFailure(
 export async function createAuraDemoSession(
   config: AuraDemoConfig,
   clientSubject: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<ParsedAuraCreateSession> {
   return runAuraRequest(
     config,
@@ -707,6 +709,7 @@ export async function createAuraDemoSession(
     {
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
+      "X-AURA-Locale": locale,
     },
     "POST",
     undefined,
@@ -729,6 +732,7 @@ export async function getCurrentAuraDemoSession(
   config: AuraDemoConfig,
   sessionToken: string,
   clientSubject: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublicCurrentSessionResponse> {
   return runAuraRequest(
     config,
@@ -737,6 +741,7 @@ export async function getCurrentAuraDemoSession(
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
+      "X-AURA-Locale": locale,
     },
     "GET",
     undefined,
@@ -760,6 +765,7 @@ export async function postAuraDemoChat(
   sessionToken: string,
   clientSubject: string,
   request: PublicDemoChatRequest,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublicDemoChatResponse> {
   return runAuraRequest(
     config,
@@ -769,6 +775,7 @@ export async function postAuraDemoChat(
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
+      "X-AURA-Locale": locale,
     },
     "POST",
     JSON.stringify({
@@ -797,6 +804,7 @@ export async function getAuraDemoReservations(
   config: AuraDemoConfig,
   sessionToken: string,
   clientSubject: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublicDemoReservationListResponse> {
   return runAuraRequest(
     config,
@@ -805,6 +813,7 @@ export async function getAuraDemoReservations(
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
+      "X-AURA-Locale": locale,
     },
     "GET",
     undefined,
@@ -826,6 +835,7 @@ export async function resetAuraDemo(
   config: AuraDemoConfig,
   sessionToken: string,
   clientSubject: string,
+  locale: SupportedLocale = DEFAULT_LOCALE,
 ): Promise<PublicDemoResetResponse> {
   return runAuraRequest(
     config,
@@ -834,6 +844,7 @@ export async function resetAuraDemo(
       "X-BFF-Service-Token": config.serviceToken,
       "X-Demo-Client-Subject": clientSubject,
       "X-Demo-Session-Token": sessionToken,
+      "X-AURA-Locale": locale,
     },
     "POST",
     undefined,

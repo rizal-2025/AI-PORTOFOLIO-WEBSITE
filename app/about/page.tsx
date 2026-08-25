@@ -4,6 +4,8 @@ import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { siteConfig } from "@/config/site";
+import { EnglishAboutPage } from "@/components/i18n/english-static-pages";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "About",
@@ -74,7 +76,8 @@ const workApproach = [
   "Mendokumentasikan keputusan teknis dan batasan sistem.",
 ] as const;
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  if ((await getServerLocale()) === "en-US") return <EnglishAboutPage />;
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]">

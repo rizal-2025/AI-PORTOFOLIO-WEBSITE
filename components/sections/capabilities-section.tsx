@@ -1,20 +1,20 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { capabilities } from "@/config/site";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export function CapabilitiesSection() {
+export function CapabilitiesSection({ copy }: Readonly<{ copy: Dictionary["home"] }>) {
   return (
     <section className="border-y border-slate-800 bg-[#050a13] py-20 sm:py-28">
       <PageContainer>
         <SectionHeading
-          eyebrow="Capabilities"
-          title="Dari problem operasional menuju sistem AI end-to-end."
-          description="Fokus pada engineering yang menghubungkan kebutuhan pengguna, logika bisnis, dan infrastruktur teknis."
+          eyebrow={copy.capabilitiesEyebrow}
+          title={copy.capabilitiesTitle}
+          description={copy.capabilitiesDescription}
         />
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map((capability) => (
+          {copy.capabilities.map((capability, index) => (
             <article
-              key={capability.title}
+              key={capability[0]}
               className="group rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition duration-200 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-slate-900 sm:p-7"
             >
               <div className="flex items-center justify-between">
@@ -34,14 +34,14 @@ export function CapabilitiesSection() {
                   </svg>
                 </span>
                 <span className="font-mono text-xs font-semibold text-slate-600">
-                  {capability.number}
+                  {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
               <h3 className="mt-7 text-lg font-semibold text-slate-100">
-                {capability.title}
+                {capability[0]}
               </h3>
               <p className="mt-3 text-sm leading-6 text-slate-400">
-                {capability.description}
+                {capability[1]}
               </p>
             </article>
           ))}

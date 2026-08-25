@@ -3,7 +3,9 @@ import Link from "next/link";
 import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
+import { EnglishAuraProjectPage } from "@/components/i18n/english-static-pages";
 import { siteConfig } from "@/config/site";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "AURA Case Study",
@@ -55,7 +57,8 @@ const decisions = [
   ["Owner-scoped access", "Fokus desain untuk menjaga akses reservasi tetap sesuai kepemilikan."],
 ] as const;
 
-export default function AuraCaseStudyPage() {
+export default async function AuraCaseStudyPage() {
+  if ((await getServerLocale()) === "en-US") return <EnglishAuraProjectPage />;
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13] text-white">

@@ -4,6 +4,8 @@ import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { siteConfig } from "@/config/site";
+import { EnglishContactPage } from "@/components/i18n/english-static-pages";
+import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -14,7 +16,8 @@ export const metadata: Metadata = {
 const inputStyles =
   "mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-slate-500 placeholder:text-slate-600 disabled:cursor-not-allowed disabled:opacity-80";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  if ((await getServerLocale()) === "en-US") return <EnglishContactPage />;
   const contactMethods = [
     {
       label: "Email",

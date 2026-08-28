@@ -123,3 +123,38 @@ for (const viewport of viewports) {
     }
   });
 }
+
+for (const locale of ["id-ID", "en-US"] as const) {
+  for (const viewport of [{ width: 360, height: 800 }, { width: 390, height: 844 }, { width: 412, height: 915 }]) {
+    for (const state of ["empty", "settled"] as const) {
+  test(`${state} AURA history remains contained at ${viewport.width}px in ${locale}`, async ({ page, context }) => {
+    const session = {
+      status: "active", expiresAt: "2026-08-28T16:00:00Z",
+      idleExpiresAt: "2026-08-28T15:30:00Z", absoluteExpiresAt: "2026-08-28T16:00:00Z",
+      messageCount: state === "settled" ? 4 : 0,
+    };
+    const longReference = `RSV_${"a".repeat(32)}`;
+    const settledMessages = [
+      { role: "user", content: locale === "id-ID" ? "Saya ingin membuat reservasi untuk empat orang." : "I want to reserve a table for four people.", createdAt: "2026-08-28T14:00:00Z" },
+      { role: "assistant", content: locale === "id-ID" ? `Reservasi berhasil dibuat. Referensi: ${longReference}` : `Your reservation was created. Reference: ${longReference}`, createdAt: "2026-08-28T14:00:01Z" },
+      { role: "user", content: "qwerty-test-audit", createdAt: "2026-08-28T14:00:02Z" },
+      { role: "assistant", content: locale === "id-ID" ? "Maaf, saya belum memahami permintaan itu. Silakan jelaskan dengan kalimat lain." : "Sorry, I did not understand that request. Please try phrasing it another way.", createdAt: "2026-08-28T14:00:03Z" },
+    ];
+
+    await context.addCookies([{ name: "aura_locale", value: locale, domain: "127.0.0.1", path: "/" }]);
+    const messages = state === "settled" ? settledMessages : [];
+    const reservations = state === "settled" ? [{ reservationReference: longReference, reservationDate: "2026-08-30", reservationTime: "19:00:00", partySize: 4, status: "pending" }] : [];
+    await page.route("**/api/demo/session", (route) => route.fulfill({ json: { session, messages, handoff: null } }));
+    await page.route("**/api/demo/reservations", (route) => route.fulfill({ json: { reservations, count: reservations.length } }));
+    await page.setViewportSize(viewport);
+    await page.goto("/demo/aura", { waitUntil: "networkidle" });
+
+    if (state === "settled") await expect(page.getByText("qwerty-test-audit", { exact: true })).toBeVisible();
+    const dimensions = await page.evaluate(() => ({ scrollWidth: document.documentElement.scrollWidth, clientWidth: document.documentElement.clientWidth }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+    await expectNoMeaningfulOverflow(page);
+    if (state === "settled") await expectReadableTextLinesWithinContainer(page.getByText(longReference, { exact: true }), page.locator("aside li").first());
+  });
+    }
+  }
+}

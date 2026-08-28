@@ -250,10 +250,10 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <section
         aria-labelledby="demo-chat-title"
-        className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/45 shadow-2xl shadow-slate-950/20"
+        className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/45 shadow-2xl shadow-slate-950/20"
       >
         <header className="flex flex-col gap-4 border-b border-slate-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
           <div>
@@ -287,7 +287,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
         </header>
 
         <div
-          className="min-h-80 space-y-4 px-5 py-6 sm:min-h-[28rem] sm:px-7"
+          className="min-w-0 min-h-80 space-y-4 px-5 py-6 sm:min-h-[28rem] sm:px-7"
           aria-label={copy.historyLabel}
         >
           {sessionState === "checking" ? (
@@ -316,20 +316,20 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
               </p>
             </div>
           ) : (
-            <ol className="space-y-4">
+            <ol className="min-w-0 space-y-4">
               {messages.map((message, index) => (
                 <li
                   key={`${message.createdAt}-${message.role}-${index}`}
-                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                  className={`min-w-0 flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <article
-                    className={`max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[75%] ${
+                    className={`min-w-0 max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[75%] ${
                       message.role === "user"
                         ? "bg-cyan-300 text-slate-950"
                         : "border border-slate-700 bg-slate-950/65 text-slate-200"
                     }`}
                   >
-                    <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
+                    <p className="break-words whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6">{message.content}</p>
                     <p
                       className={`mt-2 text-xs ${
                         message.role === "user" ? "text-slate-700" : "text-slate-500"
@@ -397,7 +397,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
         </div>
       </section>
 
-      <aside className="space-y-6" aria-label={copy.controlsLabel}>
+      <aside className="min-w-0 space-y-6" aria-label={copy.controlsLabel}>
         <section className="rounded-2xl border border-slate-800 bg-slate-900/45 p-5">
           <h2 className="text-sm font-semibold text-white">{copy.sessionStatus}</h2>
           {session === null ? (
@@ -456,10 +456,10 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
               {reservations.map((reservation) => (
                 <li
                   key={reservation.reservationReference}
-                  className="rounded-xl border border-slate-800 bg-slate-950/55 p-3"
+                  className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/55 p-3"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-mono text-xs text-cyan-200">
+                  <div className="flex min-w-0 items-center justify-between gap-3">
+                    <p className="min-w-0 break-words font-mono text-xs text-cyan-200 [overflow-wrap:anywhere]">
                       {reservation.reservationReference}
                     </p>
                     <span className="text-xs text-slate-400">{copy.status[reservation.status]}</span>

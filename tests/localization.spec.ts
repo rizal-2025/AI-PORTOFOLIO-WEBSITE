@@ -134,3 +134,38 @@ test("mobile navigation exposes a usable language selector", async ({ page }) =>
   await expect(page.getByRole("button", { name: "Open navigation menu" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
+
+test("static pages keep identical semantic sections and CTA destinations in both locales", async ({ page, context }) => {
+  const routes = ["/projects", "/architecture", "/about", "/contact"];
+
+  for (const route of routes) {
+    await context.addCookies([{ name: "aura_locale", value: "id-ID", domain: "127.0.0.1", path: "/" }]);
+    await page.goto(route);
+    const idSections = await page.locator("[data-section-id]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-section-id")));
+    const idDestinations = await page.locator("main a[href]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")).filter(Boolean).sort());
+
+    await context.addCookies([{ name: "aura_locale", value: "en-US", domain: "127.0.0.1", path: "/" }]);
+    await page.reload();
+    const enSections = await page.locator("[data-section-id]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-section-id")));
+    const enDestinations = await page.locator("main a[href]").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href")).filter(Boolean).sort());
+
+    expect(enSections, `${route} section parity`).toEqual(idSections);
+    expect(enDestinations, `${route} destination parity`).toEqual(idDestinations);
+    expect(idSections.length, `${route} must expose its complete semantic structure`).toBeGreaterThanOrEqual(3);
+  }
+});
+
+test("Indonesian static pages do not leak known English presentation labels", async ({ page, context }) => {
+  await context.addCookies([{ name: "aura_locale", value: "id-ID", domain: "127.0.0.1", path: "/" }]);
+  const forbiddenLabels = [
+    "Featured project", "Business value", "Core capabilities", "Technology stack",
+    "Contact channel", "Channel status", "Architecture overview", "Current status",
+    "Professional profile", "Working approach", "Next step",
+  ];
+
+  for (const route of ["/projects", "/architecture", "/about", "/contact"]) {
+    await page.goto(route);
+    const visibleText = await page.locator("main").innerText();
+    for (const label of forbiddenLabels) expect(visibleText, `${route} leaked ${label}`).not.toContain(label);
+  }
+});

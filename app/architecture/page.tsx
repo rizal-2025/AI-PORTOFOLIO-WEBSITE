@@ -1,183 +1,121 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+
 import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
-import { EnglishArchitecturePage } from "@/components/i18n/english-static-pages";
+import { defineLocalizedContent, selectLocalizedContent } from "@/lib/i18n/static-content";
 import { getServerLocale } from "@/lib/i18n/server";
 
 export const metadata: Metadata = {
   title: "Architecture",
-  description:
-    "Kerangka arsitektur portofolio dan demo AURA dengan pemisahan environment yang jelas.",
+  description: "Arsitektur AURA dengan batas channel, agent, layanan, dan data yang jelas.",
 };
 
-const layerCards = [
-  {
-    number: "01",
-    title: "Channel Layer",
-    description:
-      "Telegram menjadi channel AURA saat ini; web demo direncanakan sebagai channel tambahan.",
-    reason: "Memisahkan cara pesan masuk dari logika agent.",
-    status: "Current / planned",
-  },
-  {
-    number: "02",
-    title: "API Boundary",
-    description:
-      "FastAPI menjadi boundary untuk request, validasi, dan respons layanan.",
-    reason: "Menjaga interface eksternal terpisah dari core aplikasi.",
-    status: "Existing core",
-  },
-  {
-    number: "03",
-    title: "Conversation Layer",
-    description:
-      "Authenticated Chat Service mengelola identitas, konteks, dan sesi percakapan.",
-    reason: "Konteks perlu tervalidasi sebelum diteruskan ke agent.",
-    status: "Design focus",
-  },
-  {
-    number: "04",
-    title: "Agent Layer",
-    description:
-      "Agent Orchestrator memadukan intent detection, Indonesian NLU, dan workflow.",
-    reason: "Menjaga keputusan alur tetap dapat diuji dan dijelaskan.",
-    status: "Existing core",
-  },
-  {
-    number: "05",
-    title: "Business Layer",
-    description:
-      "Reservation Service menangani operasi create, check, update, dan cancel.",
-    reason: "Aturan bisnis tidak bercampur dengan channel atau UI percakapan.",
-    status: "Existing core",
-  },
-  {
-    number: "06",
-    title: "Data Layer",
-    description:
-      "PostgreSQL dan repository menyimpan data dengan ownership scope di backend.",
-    reason: "Akses data perlu dibatasi dan terkontrol oleh layanan.",
-    status: "Existing core",
-  },
-  {
-    number: "07",
-    title: "AI Provider Layer",
-    description:
-      "Ollama atau OpenAI mendukung pemahaman dan respons yang dibatasi aplikasi.",
-    reason: "LLM tidak diberi akses langsung ke database atau ownership data.",
-    status: "Provider boundary",
-  },
-  {
-    number: "08",
-    title: "Human Escalation",
-    description:
-      "Admin handoff menyediakan jalur ketika pengguna membutuhkan bantuan manusia.",
-    reason: "Agent tidak seharusnya mengambil semua keputusan sendiri.",
-    status: "Existing core",
-  },
+export const architectureSectionIds = [
+  "architecture-hero", "architecture-overview", "architecture-current",
+  "architecture-layers", "architecture-request-flow", "architecture-demo",
+  "architecture-trust", "architecture-security", "architecture-environments",
+  "architecture-technology", "architecture-status", "architecture-next",
 ] as const;
 
-const requestFlow = [
-  "Pengguna mengirim pesan.",
-  "Channel meneruskan pesan.",
-  "Identitas dan konteks divalidasi.",
-  "Intent dan entity diproses.",
-  "Agent memilih workflow.",
-  "Reservation Service menjalankan operasi.",
-  "PostgreSQL menyimpan atau mengambil data.",
-  "Agent menyusun respons.",
-  "Respons dikirim kembali ke pengguna.",
-  "Handoff digunakan bila diperlukan.",
-] as const;
+const content = defineLocalizedContent({
+  "id-ID": {
+    parent: "Proyek", eyebrow: "Arsitektur sistem",
+    title: "Arsitektur Agen AI yang", accent: "memisahkan tanggung jawab.",
+    summary: "AURA dirancang agar kanal, logika percakapan, layanan bisnis, bahasa presentasi, dan data dapat berkembang dengan batas yang jelas.",
+    status: "STATUS: DALAM PENGEMBANGAN", target: "TARGET DESAIN MODULAR",
+    caseStudy: "Lihat Studi Kasus AURA", demo: "Buka Demo", contact: "Hubungi Saya",
+    specLabel: "spesifikasi sistem",
+    spec: [["SISTEM", "AURA"], ["ARSITEKTUR", "MODULAR"], ["KANAL UTAMA", "TELEGRAM"], ["DEMO WEB", "AKTIF"], ["LAPISAN DATA", "POSTGRESQL"], ["PENYEDIA AI", "OLLAMA / OPENAI"]],
+    overview: {
+      eyebrow: "01 / Gambaran arsitektur", title: "Satu sistem, batas yang dapat dijelaskan.",
+      paragraphs: ["Kanal menerima pesan; layanan memvalidasi identitas dan konteks; orkestrator menentukan alur agen; Reservation Service menangani aturan bisnis; repository mengakses data.", "LLM membantu memahami dan menyusun respons, tetapi tidak mendapat akses langsung ke database. Handoff admin tetap tersedia ketika bantuan manusia diperlukan."],
+      cards: [["MASUKAN", "Kanal & konteks", "Pesan dan konteks dipisahkan dari aturan agen."], ["KEPUTUSAN", "Agen & alur kerja", "Intent diterjemahkan menjadi alur kerja terstruktur."], ["KENDALI", "Data & handoff", "Akses data dan eskalasi tetap dikendalikan backend."]],
+    },
+    current: {
+      eyebrow: "02 / Arsitektur AURA saat ini", title: "Alur AURA saat ini, dari kanal hingga data.", label: "alur saat ini",
+      nodes: ["Telegram", "FastAPI / Telegram Adapter", "Authenticated Chat Service", "Agent Orchestrator", "Indonesian NLU", "Reservation Workflow", "Ollama / OpenAI", "Admin Handoff", "Reservation Service", "PostgreSQL"],
+      note: "Setiap node memiliki label teks sehingga alur tetap dapat dipahami tanpa bergantung pada warna.",
+    },
+    layersEyebrow: "03 / Rincian lapisan",
+    layers: [
+      ["01", "Lapisan Kanal", "Telegram dan demo web menerima pesan tanpa memiliki aturan bisnis.", "Memisahkan cara pesan masuk dari logika agen.", "AKTIF"],
+      ["02", "Batas API", "FastAPI menjadi batas request, validasi, dan respons layanan.", "Menjaga antarmuka eksternal terpisah dari core.", "CORE AKTIF"],
+      ["03", "Lapisan Percakapan", "Authenticated Chat Service mengelola identitas, konteks, dan sesi.", "Konteks divalidasi sebelum mencapai agen.", "CORE AKTIF"],
+      ["04", "Lapisan Agen", "Agent Orchestrator memadukan intent detection, NLU, dan workflow.", "Keputusan alur tetap dapat diuji dan dijelaskan.", "CORE AKTIF"],
+      ["05", "Lapisan Bisnis", "Reservation Service menangani create, check, update, dan cancel.", "Aturan bisnis tidak bercampur dengan kanal.", "CORE AKTIF"],
+      ["06", "Lapisan Data", "PostgreSQL menyimpan data dengan ownership scope di backend.", "Akses data dikontrol oleh layanan.", "CORE AKTIF"],
+      ["07", "Lapisan Penyedia AI", "Ollama atau OpenAI mendukung pemahaman yang dibatasi aplikasi.", "LLM tidak mengakses database secara langsung.", "BATAS PENYEDIA"],
+      ["08", "Eskalasi Manusia", "Handoff admin tersedia ketika bantuan manusia diperlukan.", "Agen tidak mengambil semua keputusan sendiri.", "CORE AKTIF"],
+    ],
+    requestEyebrow: "04 / Alur request",
+    request: ["Pengguna mengirim pesan.", "Kanal meneruskan pesan.", "Identitas dan konteks divalidasi.", "Intent dan entity diproses.", "Agen memilih alur kerja.", "Reservation Service menjalankan operasi.", "PostgreSQL menyimpan atau mengambil data.", "Agen menyusun respons.", "Respons dikirim kembali.", "Handoff digunakan bila diperlukan."],
+    requestNote: "LLM membantu interpretasi dan respons, tetapi tidak menentukan ownership atau koneksi database.",
+    planned: {
+      eyebrow: "05 / Arsitektur demo publik", title: "Demo publik yang benar-benar terisolasi.", label: "arsitektur demo publik",
+      nodes: ["Browser", "Next.js Portfolio", "Next.js Route Handlers / BFF", "Tailscale Funnel", "AURA Demo FastAPI", "Demo Session Service", "Rate Limiting", "AURA Agent Core", "Simulated Handoff", "Dedicated Demo PostgreSQL"],
+      badges: ["TANPA DATABASE BERSAMA", "TANPA KREDENSIAL PRODUKSI", "DATA DEMO TERISOLASI"],
+    },
+    trustEyebrow: "06 / Batas kepercayaan",
+    trust: [["Batas Browser", "Browser tidak menerima kredensial database, kunci API LLM, JWT internal, system prompt, atau URL produksi sensitif."], ["Batas BFF", "Next.js Route Handler mengelola cookie HttpOnly, menormalisasi error, dan menyembunyikan URL backend."], ["Batas Backend", "FastAPI memvalidasi sesi, menegakkan ownership, membatasi tool, mengakses database, dan mengontrol LLM."], ["Batas Data", "Database demo dan produksi benar-benar terpisah agar demo publik tidak menyentuh data operasional."]],
+    securityEyebrow: "07 / Prinsip keamanan",
+    security: [["Isolasi Database Demo", "Data demo terpisah dari data produksi.", "AKTIF"], ["Isolasi Sesi", "Setiap sesi demo memiliki konteks terisolasi.", "AKTIF"], ["Akses Berdasarkan Pemilik", "Akses reservasi dibatasi berdasarkan kepemilikan.", "PRINSIP CORE"], ["Rate Limiting", "Request publik dibatasi sebelum mencapai layanan.", "AKTIF"], ["Validasi Masukan", "Data divalidasi di batas layanan.", "PRINSIP CORE"], ["Respons Error Aman", "Detail internal tidak diekspos.", "AKTIF"], ["Tanpa Rahasia di Browser", "Kredensial dan system prompt tetap di server.", "TARGET DESAIN"], ["Handoff Demo Simulasi", "Demo tidak menghubungi admin produksi.", "AKTIF"], ["Kedaluwarsa Data", "Data sementara memiliki cleanup terjadwal.", "AKTIF"], ["Hak Akses Minimum", "Setiap lapisan hanya mendapat akses yang diperlukan.", "PRINSIP CORE"]],
+    environments: {
+      eyebrow: "08 / Demo vs produksi", demoTitle: "Lingkungan Demo",
+      demoItems: ["Database khusus demo.", "Data sementara dan sesi anonim.", "Rate limit serta kredensial khusus demo.", "Handoff simulasi dan cleanup otomatis."],
+      productionTitle: "Lingkungan Produksi", productionItems: ["Database dan integrasi operasional nyata.", "Admin Telegram serta konfigurasi produksi.", "Tidak dapat diakses oleh demo publik."],
+      warning: "Demo publik tidak boleh menyentuh database produksi.",
+    },
+    technologyEyebrow: "09 / Peta teknologi",
+    technologies: [["Frontend Portofolio", "Next.js · TypeScript · Tailwind CSS", "Portofolio, studi kasus, dan antarmuka demo."], ["Backend AURA", "Python · FastAPI", "Batas layanan untuk core AURA."], ["Data", "PostgreSQL", "Penyimpanan persisten alur reservasi."], ["AI", "Ollama · OpenAI · Indonesian NLU", "Pemahaman bahasa yang dibatasi aplikasi."], ["Kanal", "Telegram · Demo Web", "Kanal operasional dan demo publik terisolasi."]],
+    decisionsEyebrow: "10 / Keputusan arsitektur", plannedBadge: "DIRENCANAKAN",
+    decisions: [["Kanal terpisah dari core agen", "Kanal memakai core yang sama tanpa mencampur antarmuka."], ["Lapisan layanan untuk aturan bisnis", "Alur reservasi adalah layanan, bukan detail kanal."], ["Database tetap di backend", "Browser dan LLM tidak memiliki koneksi database."], ["NLU deterministik untuk intent eksplisit", "Intent penting memakai alur terkontrol dan dapat diaudit."], ["Peran LLM dibatasi", "LLM membantu interpretasi, bukan otorisasi data."], ["BFF melindungi demo publik", "Route Handler menjadi batas publik."], ["Database demo terpisah", "Demo tidak menyentuh database produksi."], ["Handoff demo disimulasikan", "Demo tidak menghubungi admin operasional."]],
+    currentStatusEyebrow: "11 / Status saat ini",
+    statusCards: [["Tersedia di AURA", "FastAPI, PostgreSQL, operasi reservasi, Indonesian NLU, Telegram, Ollama/OpenAI, dan handoff admin."], ["Tersedia di Portofolio", "Website, halaman proyek, studi kasus, serta demo AURA publik dengan BFF server-side."], ["Peningkatan Berikutnya", "Observability lanjutan, evaluasi NLU, dan perluasan alur bisnis terisolasi."]],
+    nextEyebrow: "Langkah berikutnya", nextTitle: "Lihat sistem AURA dari konteks yang tepat.", nextSummary: "Pelajari studi kasus dan batas arsitekturnya, lalu coba demo publik yang terisolasi dari produksi.",
+  },
+  "en-US": {
+    parent: "Projects", eyebrow: "System architecture", title: "An AI Agent architecture that", accent: "separates responsibilities.",
+    summary: "AURA is designed so channels, conversation logic, business services, presentation language, and data can evolve behind clear boundaries.",
+    status: "STATUS: IN DEVELOPMENT", target: "MODULAR DESIGN TARGET", caseStudy: "View AURA Case Study", demo: "Open Demo", contact: "Contact Me", specLabel: "system specification",
+    spec: [["SYSTEM", "AURA"], ["ARCHITECTURE", "MODULAR"], ["PRIMARY CHANNEL", "TELEGRAM"], ["WEB DEMO", "LIVE"], ["DATA LAYER", "POSTGRESQL"], ["AI PROVIDER", "OLLAMA / OPENAI"]],
+    overview: { eyebrow: "01 / Architecture overview", title: "One system with explainable boundaries.", paragraphs: ["The channel receives messages; services validate identity and context; the orchestrator selects the agent flow; Reservation Service enforces business rules; repositories access data.", "The LLM helps interpret requests and compose responses, but never receives direct database access. Admin handoff remains available when human help is needed."], cards: [["INPUT", "Channel & context", "Messages and context stay separate from agent rules."], ["DECISION", "Agent & workflow", "Intent becomes a structured workflow."], ["CONTROL", "Data & handoff", "Data access and escalation remain under backend control."]] },
+    current: { eyebrow: "02 / Current AURA architecture", title: "AURA's current path, from channel to data.", label: "current flow", nodes: ["Telegram", "FastAPI / Telegram Adapter", "Authenticated Chat Service", "Agent Orchestrator", "Indonesian NLU", "Reservation Workflow", "Ollama / OpenAI", "Admin Handoff", "Reservation Service", "PostgreSQL"], note: "Every node has a text label, so the flow never depends on color alone." },
+    layersEyebrow: "03 / Layer breakdown",
+    layers: [["01", "Channel Layer", "Telegram and the web demo accept messages without owning business rules.", "Separates message transport from agent logic.", "LIVE"], ["02", "API Boundary", "FastAPI is the request, validation, and response boundary.", "Keeps external interfaces separate from the core.", "EXISTING CORE"], ["03", "Conversation Layer", "Authenticated Chat Service manages identity, context, and sessions.", "Context is validated before reaching the agent.", "EXISTING CORE"], ["04", "Agent Layer", "Agent Orchestrator combines intent detection, NLU, and workflows.", "Routing decisions stay testable and explainable.", "EXISTING CORE"], ["05", "Business Layer", "Reservation Service handles create, check, update, and cancel.", "Business rules remain independent from channels.", "EXISTING CORE"], ["06", "Data Layer", "PostgreSQL stores data with backend owner scope.", "Services control data access.", "EXISTING CORE"], ["07", "AI Provider Layer", "Ollama or OpenAI provides application-bounded understanding.", "The LLM has no direct database access.", "PROVIDER BOUNDARY"], ["08", "Human Escalation", "Admin handoff is available when human help is needed.", "The agent does not make every decision alone.", "EXISTING CORE"]],
+    requestEyebrow: "04 / Request flow", request: ["The user sends a message.", "The channel forwards it.", "Identity and context are validated.", "Intent and entities are processed.", "The agent selects a workflow.", "Reservation Service performs the operation.", "PostgreSQL stores or retrieves data.", "The agent composes a response.", "The response returns to the user.", "Handoff is used when needed."], requestNote: "The LLM helps interpretation and responses, but does not determine ownership or database connectivity.",
+    planned: { eyebrow: "05 / Public demo architecture", title: "A genuinely isolated public demo.", label: "public demo architecture", nodes: ["Browser", "Next.js Portfolio", "Next.js Route Handlers / BFF", "Tailscale Funnel", "AURA Demo FastAPI", "Demo Session Service", "Rate Limiting", "AURA Agent Core", "Simulated Handoff", "Dedicated Demo PostgreSQL"], badges: ["NO SHARED DATABASE", "NO PRODUCTION CREDENTIALS", "ISOLATED DEMO DATA"] },
+    trustEyebrow: "06 / Trust boundaries", trust: [["Browser Boundary", "The browser never receives database credentials, LLM API keys, internal JWTs, system prompts, or sensitive production URLs."], ["BFF Boundary", "Next.js Route Handlers manage HttpOnly cookies, normalize errors, and hide the backend URL."], ["Backend Boundary", "FastAPI validates sessions, enforces ownership, constrains tools, accesses data, and controls LLM calls."], ["Data Boundary", "Demo and production databases stay fully separate so the public demo cannot touch operational data."]],
+    securityEyebrow: "07 / Security principles", security: [["Demo Database Isolation", "Demo data is separate from production data.", "LIVE"], ["Session Isolation", "Every demo session has isolated context.", "LIVE"], ["Owner-Scoped Access", "Reservation access is constrained by ownership.", "CORE PRINCIPLE"], ["Rate Limiting", "Public requests are limited before reaching the service.", "LIVE"], ["Input Validation", "Input is validated at the service boundary.", "CORE PRINCIPLE"], ["Safe Error Responses", "Internal details are not exposed.", "LIVE"], ["No Secrets in Browser", "Credentials and system prompts stay server-side.", "DESIGN TARGET"], ["Simulated Demo Handoff", "The demo never contacts production admins.", "LIVE"], ["Data Expiration", "Temporary data has scheduled cleanup.", "LIVE"], ["Least Privilege", "Each layer receives only the access it needs.", "CORE PRINCIPLE"]],
+    environments: { eyebrow: "08 / Demo vs production", demoTitle: "Demo Environment", demoItems: ["Dedicated demo database.", "Temporary data and anonymous sessions.", "Strict rate limits and demo-only credentials.", "Simulated handoff and automatic cleanup."], productionTitle: "Production Environment", productionItems: ["Production database and real integrations.", "Telegram admin and production configuration.", "Inaccessible from the public demo."], warning: "The public demo must never touch the production database." },
+    technologyEyebrow: "09 / Technology map", technologies: [["Portfolio Frontend", "Next.js · TypeScript · Tailwind CSS", "Portfolio, case studies, and demo interface."], ["AURA Backend", "Python · FastAPI", "Service boundary for the AURA core."], ["Data", "PostgreSQL", "Persistent reservation workflow storage."], ["AI", "Ollama · OpenAI · Indonesian NLU", "Application-bounded language understanding."], ["Channels", "Telegram · Web Demo", "Operational channel and isolated public demo."]],
+    decisionsEyebrow: "10 / Architecture decisions", plannedBadge: "PLANNED", decisions: [["Channels stay separate from the agent core", "Channels share the core without mixing interfaces."], ["A service layer owns business rules", "Reservation workflows are services, not channel details."], ["The database stays behind the backend", "Neither browser nor LLM owns a database connection."], ["Deterministic NLU handles explicit intent", "Critical intents use controlled, auditable paths."], ["The LLM has a constrained role", "It helps interpretation, not data authorization."], ["A BFF protects the public demo", "Route Handlers provide the public boundary."], ["The demo database is separate", "The demo cannot touch production data."], ["Demo handoff is simulated", "The demo never contacts operational admins."]],
+    currentStatusEyebrow: "11 / Current status", statusCards: [["Available in AURA", "FastAPI, PostgreSQL, reservation operations, Indonesian NLU, Telegram, Ollama/OpenAI, and admin handoff."], ["Available in the Portfolio", "Website, project pages, case study, and a public AURA demo behind a server-side BFF."], ["Next Improvements", "Deeper observability, NLU evaluation, and more isolated business workflows."]],
+    nextEyebrow: "Next step", nextTitle: "Explore AURA in the right context.", nextSummary: "Read the case study and architecture boundaries, then try the public demo isolated from production.",
+  },
+});
 
-const securityPrinciples = [
-  ["Demo Database Isolation", "Data demo direncanakan terpisah dari data produksi.", "Planned for Demo"],
-  ["Session Isolation", "Setiap sesi demo direncanakan memiliki konteks yang terisolasi.", "Planned for Demo"],
-  ["Owner-Scoped Data Access", "Akses data reservation dibatasi berdasarkan kepemilikan di backend.", "Existing Core Principle"],
-  ["Rate Limiting", "Permintaan publik akan dibatasi sebelum mencapai layanan demo.", "Planned for Demo"],
-  ["Input Validation", "Data masuk divalidasi di boundary layanan sebelum diproses.", "Existing Core Principle"],
-  ["Safe Error Responses", "Error dinormalisasi agar detail internal tidak terekspos.", "Planned for Demo"],
-  ["No Secrets in Browser", "Credential dan system prompt tidak boleh dikirim ke browser.", "Design Target"],
-  ["Simulated Demo Handoff", "Demo publik akan memakai handoff simulasi, bukan admin produksi.", "Planned for Demo"],
-  ["Data Expiration", "Data demo sementara akan memiliki kebijakan cleanup yang direncanakan.", "Planned for Demo"],
-  ["Least Privilege", "Setiap lapisan dibatasi hanya pada akses yang diperlukan.", "Existing Core Principle"],
-] as const;
+const cardClass = "min-w-0 rounded-2xl border border-slate-800 bg-slate-900/50 p-6";
 
-const decisions = [
-  ["Channel terpisah dari agent core", "Telegram dan future web demo dapat memakai core yang sama tanpa mencampur interface."],
-  ["Service layer untuk aturan bisnis", "Workflow reservasi diposisikan sebagai layanan, bukan detail channel."],
-  ["Database tetap di backend", "Browser dan LLM tidak menjadi pemilik kredensial atau koneksi database."],
-  ["Deterministic NLU untuk intent eksplisit", "Intent penting dapat menggunakan alur yang terkontrol dan dapat diaudit."],
-  ["Peran LLM dibatasi", "LLM membantu interpretasi dan respons, bukan ownership atau otorisasi data."],
-  ["BFF untuk demo publik", "Next.js Route Handler direncanakan sebagai boundary publik untuk demo."],
-  ["Database demo terpisah", "Demo publik tidak boleh menyentuh database atau kredensial produksi."],
-  ["Handoff simulasi di demo", "Jalur demo direncanakan aman tanpa menghubungi admin operasional."],
-] as const;
+function Flow({ nodes }: Readonly<{ nodes: readonly string[] }>) {
+  return <div className="grid min-w-0 gap-2 p-5 font-mono text-xs sm:p-7 sm:text-sm">{nodes.map((node, index) => <div key={node} className="grid min-w-0 gap-2"><div className="min-w-0 break-words rounded-lg border border-slate-700 p-3 text-slate-200">{node}</div>{index < nodes.length - 1 ? <span className="text-center text-emerald-300" aria-hidden="true">↓</span> : null}</div>)}</div>;
+}
 
 export default async function ArchitecturePage() {
-  if ((await getServerLocale()) === "en-US") return <EnglishArchitecturePage />;
-  return (
-    <>
-      <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]">
-        <div className="matrix-grid absolute inset-0 -z-20" aria-hidden="true" />
-        <div className="absolute left-[-12rem] top-[-10rem] -z-10 size-[32rem] rounded-full bg-emerald-500/10 blur-[120px]" aria-hidden="true" />
-        <PageContainer className="py-8 sm:py-10">
-          <nav aria-label="Breadcrumb" className="font-mono text-xs text-slate-500">
-            <Link href="/projects" className="transition-colors hover:text-emerald-300">Projects</Link>
-            <span className="mx-2 text-slate-700" aria-hidden="true">/</span>
-            <span aria-current="page" className="text-slate-300">Architecture</span>
-          </nav>
-        </PageContainer>
-        <PageContainer className="grid gap-12 pb-20 sm:pb-28 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
-          <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300"><span className="size-1.5 rounded-full bg-emerald-400" aria-hidden="true" />System architecture</p>
-            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.06] tracking-[-0.045em] text-slate-50 sm:text-6xl">Arsitektur AI Agent yang <span className="text-emerald-300">memisahkan tanggung jawab.</span></h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-400 sm:text-lg">AURA dirancang agar channel, logika percakapan, layanan bisnis, dan data dapat berkembang dengan batas yang jelas.</p>
-            <div className="mt-7 flex flex-wrap gap-2"><span className="rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs text-emerald-300">STATUS: IN DEVELOPMENT</span><span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 font-mono text-xs text-slate-400">MODULAR DESIGN TARGET</span></div>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/projects/aura">Lihat AURA Case Study</ButtonLink><ButtonLink href="/demo/aura" variant="secondary">Buka Demo Interface</ButtonLink></div>
-          </div>
-          <TerminalPanel label="system specification"><dl className="grid gap-3 p-5 font-mono text-xs sm:text-sm">{[["SYSTEM", "AURA"], ["ARCHITECTURE", "MODULAR"], ["PRIMARY CHANNEL", "TELEGRAM"], ["WEB DEMO", "IN DEVELOPMENT"], ["DATA LAYER", "POSTGRESQL"], ["AI PROVIDER", "OLLAMA / OPENAI"]].map(([label, value]) => <div key={label} className="flex items-start justify-between gap-5 border-b border-slate-800 pb-3 last:border-0 last:pb-0"><dt className="text-slate-500">{label}</dt><dd className="text-right text-emerald-300">{value}</dd></div>)}</dl></TerminalPanel>
-        </PageContainer>
-      </section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24">
-        <PageContainer>
-          <div className="grid gap-12 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20"><div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">01 / Architecture overview</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Satu sistem, batas yang dapat dijelaskan.</h2></div><div className="max-w-2xl space-y-5 text-base leading-8 text-slate-400"><p>Channel menerima pesan; service memvalidasi identitas dan konteks; orchestrator menentukan alur agent; Reservation Service menangani aturan bisnis; repository mengakses data.</p><p>LLM membantu memahami dan menyusun respons, tetapi tidak mendapat akses langsung ke database. Admin handoff tetap tersedia sebagai jalur eskalasi ketika bantuan manusia diperlukan.</p></div></div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-6"><p className="font-mono text-xs text-emerald-300">INPUT</p><h3 className="mt-3 font-semibold text-slate-100">Channel &amp; context</h3><p className="mt-3 text-sm leading-6 text-slate-400">Pesan masuk dan konteks dipisahkan dari aturan agent.</p></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><p className="font-mono text-xs text-cyan-300">DECISION</p><h3 className="mt-3 font-semibold text-slate-100">Agent &amp; workflow</h3><p className="mt-3 text-sm leading-6 text-slate-400">Intent diterjemahkan menjadi workflow yang terstruktur.</p></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><p className="font-mono text-xs text-slate-500">CONTROL</p><h3 className="mt-3 font-semibold text-slate-100">Data &amp; handoff</h3><p className="mt-3 text-sm leading-6 text-slate-400">Akses data dan jalur eskalasi tetap di bawah kendali backend.</p></article></div>
-        </PageContainer>
-      </section>
-
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
-        <PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">02 / Current AURA architecture</p><h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Alur AURA saat ini, dari channel hingga data.</h2><TerminalPanel label="current flow" className="mt-10"><div className="grid gap-2 p-5 font-mono text-xs sm:p-7 sm:text-sm"><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Telegram</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">FastAPI / Telegram Adapter</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Authenticated Chat Service</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-3 text-emerald-200">Agent Orchestrator</div><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Indonesian NLU</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Reservation Workflow</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Ollama / OpenAI</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Admin Handoff</div></div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Reservation Service</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-cyan-400/20 bg-cyan-400/[0.04] p-3 text-cyan-200">PostgreSQL</div></div></TerminalPanel><p className="mt-5 max-w-3xl text-sm leading-7 text-slate-400">Diagram ini menjelaskan lapisan saat ini secara konseptual. Setiap node memiliki label teks sehingga alur tetap dapat dipahami tanpa bergantung pada warna.</p></PageContainer>
-      </section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24">
-        <PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">03 / Layer breakdown</p><div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{layerCards.map((layer) => <article key={layer.title} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><div className="flex items-center justify-between gap-4"><span className="font-mono text-xs text-emerald-300">{layer.number}</span><span className="rounded-full border border-slate-700 px-2.5 py-1 font-mono text-[0.65rem] uppercase tracking-[0.1em] text-slate-400">{layer.status}</span></div><h2 className="mt-6 text-lg font-semibold text-slate-100">{layer.title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{layer.description}</p><p className="mt-5 border-t border-slate-800 pt-4 text-xs leading-5 text-slate-500">{layer.reason}</p></article>)}</div></PageContainer>
-      </section>
-
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
-        <PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">04 / Request flow</p><div className="mt-9 grid gap-3 md:grid-cols-2">{requestFlow.map((step, index) => <article key={step} className="flex gap-4 rounded-xl border border-slate-800 bg-slate-900/50 p-5"><span className="grid size-8 shrink-0 place-items-center rounded-lg border border-emerald-400/15 bg-emerald-400/5 font-mono text-xs text-emerald-300">{String(index + 1).padStart(2, "0")}</span><p className="pt-1 text-sm leading-6 text-slate-300">{step}</p></article>)}</div><p className="mt-6 max-w-3xl rounded-xl border border-cyan-400/15 bg-cyan-400/[0.035] px-5 py-4 text-sm leading-7 text-slate-400">LLM membantu interpretasi dan respons, tetapi tidak menentukan ownership atau koneksi database.</p></PageContainer>
-      </section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24">
-        <PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">05 / Planned public demo architecture</p><h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Target desain untuk demo yang benar-benar terisolasi.</h2><TerminalPanel label="planned demo architecture" className="mt-10"><div className="grid gap-2 p-5 font-mono text-xs sm:p-7 sm:text-sm"><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Browser</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Next.js Portfolio</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Next.js Route Handlers / BFF</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-3 text-emerald-200">AURA Demo FastAPI</div><div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4"><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Demo Session Service</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Rate Limiting</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">AURA Agent Core</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Dedicated LLM Configuration</div></div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Simulated Handoff</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-cyan-400/20 bg-cyan-400/[0.04] p-3 text-cyan-200">Dedicated Demo PostgreSQL</div></div><div className="border-t border-emerald-400/15 px-5 py-4 sm:px-7"><p className="font-mono text-xs leading-6 text-emerald-300">PLANNED ARCHITECTURE · DESIGN TARGET · IMPLEMENTATION PENDING</p></div></TerminalPanel><div className="mt-5 grid gap-3 sm:grid-cols-3"><p className="rounded-xl border border-red-400/15 bg-red-400/[0.035] px-4 py-3 font-mono text-xs text-red-200">NO SHARED DATABASE</p><p className="rounded-xl border border-red-400/15 bg-red-400/[0.035] px-4 py-3 font-mono text-xs text-red-200">NO PRODUCTION CREDENTIALS</p><p className="rounded-xl border border-emerald-400/15 bg-emerald-400/[0.035] px-4 py-3 font-mono text-xs text-emerald-200">ISOLATED DEMO DATA</p></div></PageContainer>
-      </section>
-
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
-        <PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">06 / Trust boundaries</p><div className="mt-9 grid gap-4 md:grid-cols-2"><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><h2 className="text-lg font-semibold text-slate-100">Browser Boundary</h2><p className="mt-3 text-sm leading-6 text-slate-400">Browser tidak boleh menerima database credential, LLM API key, backend JWT internal, system prompt, atau production URL sensitif.</p></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><h2 className="text-lg font-semibold text-slate-100">BFF Boundary</h2><p className="mt-3 text-sm leading-6 text-slate-400">Next.js Route Handler direncanakan menerima request publik, mengelola cookie HttpOnly, menormalisasi error, dan menyembunyikan URL backend.</p></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><h2 className="text-lg font-semibold text-slate-100">Backend Boundary</h2><p className="mt-3 text-sm leading-6 text-slate-400">FastAPI bertanggung jawab memvalidasi session, menegakkan ownership, membatasi tool, mengakses database, dan mengontrol panggilan LLM.</p></article><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-6"><h2 className="text-lg font-semibold text-slate-100">Data Boundary</h2><p className="mt-3 text-sm leading-6 text-slate-400">Database demo dan production harus benar-benar terpisah agar demo publik tidak menyentuh data operasional.</p></article></div></PageContainer>
-      </section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">07 / Security principles</p><div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{securityPrinciples.map(([title, description, status]) => <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><h2 className="text-base font-semibold text-slate-100">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{description}</p><p className="mt-5 font-mono text-[0.65rem] uppercase tracking-[0.11em] text-emerald-300">{status}</p></article>)}</div></PageContainer></section>
-
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">08 / Demo vs production</p><div className="mt-9 grid gap-5 lg:grid-cols-2"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Demo Environment</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Database khusus demo.", "Data sementara dan session anonim.", "Rate limit ketat serta credential khusus demo.", "Simulated handoff dan cleanup otomatis yang direncanakan."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-7"><h2 className="text-xl font-semibold text-slate-100">Production Environment</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Database produksi dan integrasi operasional nyata.", "Telegram admin serta konfigurasi production.", "Tidak dapat diakses oleh demo publik."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-400" aria-hidden="true" />{item}</li>)}</ul></article></div><p className="mt-5 text-sm font-medium text-emerald-300">Demo publik tidak boleh menyentuh database produksi.</p></PageContainer></section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24"><PageContainer className="grid gap-12 lg:grid-cols-2"><div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">09 / Technology map</p><div className="mt-7 grid gap-3">{[["Frontend Portfolio", "Next.js · TypeScript · Tailwind CSS", "Menyajikan portofolio, studi kasus, dan interface demo statis."], ["AURA Backend", "Python · FastAPI", "Menjadi boundary layanan untuk core AURA."], ["Data", "PostgreSQL", "Persistence untuk reservation workflow."], ["AI", "Ollama · OpenAI · Indonesian NLU", "Provider dan kemampuan pemahaman bahasa yang dibatasi aplikasi."], ["Channel", "Telegram · Future Web Demo", "Channel saat ini dan arah pengembangan berikutnya."]].map(([title, stack, description]) => <article key={title} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"><p className="font-mono text-xs text-emerald-300">{title}</p><h2 className="mt-3 text-lg font-semibold text-slate-100">{stack}</h2><p className="mt-2 text-sm leading-6 text-slate-400">{description}</p></article>)}</div></div><div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">10 / Architecture decisions</p><div className="mt-7 grid gap-3">{decisions.map(([title, description], index) => <article key={title} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"><div className="flex items-center justify-between gap-4"><h2 className="text-sm font-semibold text-slate-100">{title}</h2>{index > 4 ? <span className="font-mono text-[0.65rem] text-cyan-300">PLANNED</span> : null}</div><p className="mt-2 text-sm leading-6 text-slate-400">{description}</p></article>)}</div></div></PageContainer></section>
-
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">11 / Current status</p><div className="mt-8 grid gap-5 lg:grid-cols-3"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-6"><h2 className="font-semibold text-slate-100">Existing in AURA</h2><p className="mt-3 text-sm leading-6 text-slate-400">FastAPI backend, PostgreSQL persistence, reservation operations, Indonesian NLU, Telegram integration, Ollama/OpenAI support, dan admin handoff.</p></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><h2 className="font-semibold text-slate-100">Existing in Portfolio</h2><p className="mt-3 text-sm leading-6 text-slate-400">Static website, project pages, case study, dan static demo interface.</p></article><article className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.035] p-6"><h2 className="font-semibold text-slate-100">Planned Next</h2><p className="mt-3 text-sm leading-6 text-slate-400">BFF Route Handlers, isolated demo session, demo database, rate limiting, chat integration, simulated handoff, dan deployment.</p></article></div></PageContainer></section>
-
-      <section className="bg-[#080e19] py-16 sm:py-24"><PageContainer><div className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-slate-900 px-7 py-12 sm:px-12 sm:py-16"><div className="absolute -right-24 -top-24 size-80 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden="true" /><div className="relative max-w-3xl"><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Next step</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-5xl">Lihat sistem AURA dari konteks yang tepat.</h2><p className="mt-5 text-base leading-7 text-slate-400">Backend integration untuk demo masih dalam pengembangan. Case study dan interface demo tetap dapat dieksplorasi sebagai materi portofolio statis.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/projects/aura">Lihat AURA Case Study</ButtonLink><ButtonLink href="/demo/aura" variant="secondary">Buka Demo Interface</ButtonLink><ButtonLink href="/contact" variant="secondary">Hubungi Saya</ButtonLink></div></div></div></PageContainer></section>
-    </>
-  );
+  const copy = selectLocalizedContent(content, await getServerLocale());
+  return <>
+    <section data-section-id={architectureSectionIds[0]} className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]"><div className="matrix-grid absolute inset-0 -z-20" aria-hidden="true" /><PageContainer className="py-8 sm:py-10"><nav aria-label="Breadcrumb" className="font-mono text-xs text-slate-500"><Link href="/projects" className="hover:text-emerald-300">{copy.parent}</Link><span className="mx-2">/</span><span className="text-slate-300">Architecture</span></nav></PageContainer><PageContainer className="grid gap-12 pb-20 sm:pb-28 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end"><div className="min-w-0"><p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">{copy.eyebrow}</p><h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-[-0.045em] text-slate-50 sm:text-6xl">{copy.title} <span className="text-emerald-300">{copy.accent}</span></h1><p className="mt-6 max-w-2xl text-base leading-8 text-slate-400 sm:text-lg">{copy.summary}</p><div className="mt-7 flex flex-wrap gap-2"><span className="rounded-full border border-emerald-400/20 px-3 py-1.5 font-mono text-xs text-emerald-300">{copy.status}</span><span className="rounded-full border border-slate-700 px-3 py-1.5 font-mono text-xs text-slate-400">{copy.target}</span></div><div className="mt-9 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/projects/aura">{copy.caseStudy}</ButtonLink><ButtonLink href="/demo/aura" variant="secondary">{copy.demo}</ButtonLink></div></div><TerminalPanel label={copy.specLabel}><dl className="grid gap-3 p-5 font-mono text-xs sm:text-sm">{copy.spec.map(([label, value]) => <div key={label} className="flex justify-between gap-5 border-b border-slate-800 pb-3 last:border-0"><dt className="text-slate-500">{label}</dt><dd className="text-right text-emerald-300">{value}</dd></div>)}</dl></TerminalPanel></PageContainer></section>
+    <section data-section-id={architectureSectionIds[1]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer><div className="grid gap-12 lg:grid-cols-[.75fr_1.25fr]"><div><p className="font-mono text-xs text-emerald-300">{copy.overview.eyebrow}</p><h2 className="mt-4 text-3xl font-semibold text-slate-50 sm:text-4xl">{copy.overview.title}</h2></div><div className="space-y-5 leading-8 text-slate-400">{copy.overview.paragraphs.map((text) => <p key={text}>{text}</p>)}</div></div><div className="mt-10 grid gap-4 md:grid-cols-3">{copy.overview.cards.map(([label, title, text]) => <article key={label} className={cardClass}><p className="font-mono text-xs text-emerald-300">{label}</p><h3 className="mt-3 font-semibold text-slate-100">{title}</h3><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p></article>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[2]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.current.eyebrow}</p><h2 className="mt-4 text-3xl font-semibold text-slate-50 sm:text-4xl">{copy.current.title}</h2><TerminalPanel label={copy.current.label} className="mt-10"><Flow nodes={copy.current.nodes} /></TerminalPanel><p className="mt-5 text-sm leading-7 text-slate-400">{copy.current.note}</p></PageContainer></section>
+    <section data-section-id={architectureSectionIds[3]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.layersEyebrow}</p><div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">{copy.layers.map(([number, title, text, reason, status]) => <article key={number} className={cardClass}><div className="flex justify-between gap-4 font-mono text-xs text-emerald-300"><span>{number}</span><span>{status}</span></div><h2 className="mt-6 text-lg font-semibold text-slate-100">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p><p className="mt-5 border-t border-slate-800 pt-4 text-xs text-slate-500">{reason}</p></article>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[4]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.requestEyebrow}</p><div className="mt-9 grid gap-3 md:grid-cols-2">{copy.request.map((step, index) => <article key={step} className={`${cardClass} flex gap-4`}><span className="font-mono text-emerald-300">{String(index + 1).padStart(2, "0")}</span><p className="text-sm text-slate-300">{step}</p></article>)}</div><p className="mt-6 rounded-xl border border-cyan-400/15 p-5 text-sm text-slate-400">{copy.requestNote}</p></PageContainer></section>
+    <section data-section-id={architectureSectionIds[5]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.planned.eyebrow}</p><h2 className="mt-4 text-3xl font-semibold text-slate-50 sm:text-4xl">{copy.planned.title}</h2><TerminalPanel label={copy.planned.label} className="mt-10"><Flow nodes={copy.planned.nodes} /></TerminalPanel><div className="mt-5 grid gap-3 sm:grid-cols-3">{copy.planned.badges.map((badge) => <p key={badge} className="break-words rounded-xl border border-emerald-400/15 px-4 py-3 font-mono text-xs text-emerald-200">{badge}</p>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[6]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.trustEyebrow}</p><div className="mt-9 grid gap-4 md:grid-cols-2">{copy.trust.map(([title, text]) => <article key={title} className={cardClass}><h2 className="text-lg font-semibold text-slate-100">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p></article>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[7]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.securityEyebrow}</p><div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{copy.security.map(([title, text, status]) => <article key={title} className={cardClass}><h2 className="font-semibold text-slate-100">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p><p className="mt-5 font-mono text-xs text-emerald-300">{status}</p></article>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[8]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.environments.eyebrow}</p><div className="mt-9 grid gap-5 lg:grid-cols-2">{[[copy.environments.demoTitle, copy.environments.demoItems], [copy.environments.productionTitle, copy.environments.productionItems]].map(([title, items]) => <article key={title as string} className={cardClass}><h2 className="text-xl font-semibold text-slate-100">{title}</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{(items as readonly string[]).map((item) => <li key={item}>• {item}</li>)}</ul></article>)}</div><p className="mt-5 text-sm font-medium text-emerald-300">{copy.environments.warning}</p></PageContainer></section>
+    <section data-section-id={architectureSectionIds[9]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer className="grid gap-12 lg:grid-cols-2"><div><p className="font-mono text-xs text-emerald-300">{copy.technologyEyebrow}</p><div className="mt-7 grid gap-3">{copy.technologies.map(([title, stack, text]) => <article key={title} className={cardClass}><p className="font-mono text-xs text-emerald-300">{title}</p><h2 className="mt-3 font-semibold text-slate-100">{stack}</h2><p className="mt-2 text-sm text-slate-400">{text}</p></article>)}</div></div><div><p className="font-mono text-xs text-emerald-300">{copy.decisionsEyebrow}</p><div className="mt-7 grid gap-3">{copy.decisions.map(([title, text], index) => <article key={title} className={cardClass}><div className="flex justify-between gap-4"><h2 className="font-semibold text-slate-100">{title}</h2>{index > 4 ? <span className="font-mono text-xs text-cyan-300">{copy.plannedBadge}</span> : null}</div><p className="mt-2 text-sm text-slate-400">{text}</p></article>)}</div></div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[10]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24"><PageContainer><p className="font-mono text-xs text-emerald-300">{copy.currentStatusEyebrow}</p><div className="mt-8 grid gap-5 lg:grid-cols-3">{copy.statusCards.map(([title, text]) => <article key={title} className={cardClass}><h2 className="font-semibold text-slate-100">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{text}</p></article>)}</div></PageContainer></section>
+    <section data-section-id={architectureSectionIds[11]} className="bg-[#080e19] py-16 sm:py-24"><PageContainer><div className="rounded-3xl border border-emerald-400/20 bg-slate-900 px-7 py-12 sm:px-12"><p className="font-mono text-xs text-emerald-300">{copy.nextEyebrow}</p><h2 className="mt-4 text-3xl font-semibold text-slate-50 sm:text-5xl">{copy.nextTitle}</h2><p className="mt-5 max-w-3xl text-slate-400">{copy.nextSummary}</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/projects/aura">{copy.caseStudy}</ButtonLink><ButtonLink href="/demo/aura" variant="secondary">{copy.demo}</ButtonLink><ButtonLink href="/contact" variant="secondary">{copy.contact}</ButtonLink></div></div></PageContainer></section>
+  </>;
 }

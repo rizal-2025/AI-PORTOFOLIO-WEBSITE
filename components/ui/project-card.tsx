@@ -11,6 +11,14 @@ type ProjectCardProps = {
   technologies: readonly string[];
   caseStudyHref: string;
   demoHref: string;
+  labels: {
+    featuredProject: string;
+    businessValue: string;
+    coreCapabilities: string;
+    technologyStack: string;
+    caseStudy: string;
+    demo: string;
+  };
 };
 
 export function ProjectCard({
@@ -24,6 +32,7 @@ export function ProjectCard({
   technologies,
   caseStudyHref,
   demoHref,
+  labels,
 }: ProjectCardProps) {
   return (
     <article className="overflow-hidden rounded-3xl border border-slate-700/80 bg-slate-900/50 shadow-2xl shadow-black/20">
@@ -35,7 +44,7 @@ export function ProjectCard({
           />
           <div className="relative flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-cyan-300">
-              Featured project
+              {labels.featuredProject}
             </p>
             <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-1 text-[0.68rem] font-medium text-emerald-300">
               <span
@@ -59,7 +68,7 @@ export function ProjectCard({
         <div className="p-7 sm:p-10">
           <div className="border-b border-slate-700/70 pb-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
-              Nilai bisnis
+              {labels.businessValue}
             </p>
             <p className="mt-4 text-lg leading-8 text-slate-300">{description}</p>
             <ul className="mt-5 grid gap-2">
@@ -74,7 +83,7 @@ export function ProjectCard({
 
           <div className="grid gap-8 py-8 md:grid-cols-2">
             <div>
-              <h4 className="text-sm font-semibold text-slate-100">Kemampuan utama</h4>
+              <h4 className="text-sm font-semibold text-slate-100">{labels.coreCapabilities}</h4>
               <ul className="mt-4 grid gap-3">
                 {features.map((feature) => (
                   <li
@@ -98,7 +107,7 @@ export function ProjectCard({
             </div>
             <div>
               <h4 className="text-sm font-semibold text-slate-100">
-                Technology stack
+                {labels.technologyStack}
               </h4>
               <ul className="mt-4 flex flex-wrap gap-2">
                 {technologies.map((technology) => (
@@ -115,10 +124,10 @@ export function ProjectCard({
 
           <div className="flex flex-col gap-3 border-t border-slate-700/70 pt-8 sm:flex-row">
             <ButtonLink href={caseStudyHref}>
-              Lihat studi kasus <span className="ml-2" aria-hidden="true">→</span>
+              {labels.caseStudy} <span className="ml-2" aria-hidden="true">→</span>
             </ButtonLink>
             <ButtonLink href={demoHref} variant="secondary">
-              Coba demo AURA
+              {labels.demo}
             </ButtonLink>
           </div>
         </div>

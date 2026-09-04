@@ -325,14 +325,20 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                   <article
                     className={`min-w-0 max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[75%] ${
                       message.role === "user"
-                        ? "bg-cyan-300 text-slate-950"
+                        ? "bg-cyan-300 !text-black"
                         : "border border-slate-700 bg-slate-950/65 text-slate-200"
                     }`}
                   >
-                    <p className="break-words whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6">{message.content}</p>
+                    <p
+                      className={`break-words whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6 ${
+                        message.role === "user" ? "!text-black" : "text-slate-200"
+                      }`}
+                    >
+                      {message.content}
+                    </p>
                     <p
                       className={`mt-2 text-xs ${
-                        message.role === "user" ? "text-slate-700" : "text-slate-500"
+                        message.role === "user" ? "!text-black" : "text-slate-500"
                       }`}
                     >
                       {message.role === "user" ? copy.you : "AURA"} · {formatTimestamp(message.createdAt, locale)}

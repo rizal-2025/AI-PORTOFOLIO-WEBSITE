@@ -8,7 +8,7 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { SupportedLocale } from "@/lib/i18n/locale";
 
 const linkStyles =
-  "flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200";
+  "flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-200";
 
 export function MobileNavigation({ locale, copy, links }: Readonly<{
   locale: SupportedLocale;
@@ -34,7 +34,7 @@ export function MobileNavigation({ locale, copy, links }: Readonly<{
     <>
       <button
         type="button"
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm font-semibold text-slate-200 transition-colors hover:border-cyan-300/50 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 lg:hidden"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm font-semibold text-zinc-200 transition-colors hover:border-violet-300/50 hover:text-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-200 lg:hidden"
         aria-controls="mobile-navigation"
         aria-expanded={isMenuOpen}
         aria-label={isMenuOpen ? copy.closeMenu : copy.openMenu}
@@ -54,7 +54,7 @@ export function MobileNavigation({ locale, copy, links }: Readonly<{
 
       <nav
         id="mobile-navigation"
-        className="absolute inset-x-0 top-full border-t border-slate-800 bg-slate-950 lg:hidden"
+        className="absolute inset-x-0 top-full border-t border-zinc-800 bg-zinc-950 lg:hidden"
         aria-label={copy.mobileNavigationLabel}
         hidden={!isMenuOpen}
       >
@@ -69,7 +69,7 @@ export function MobileNavigation({ locale, copy, links }: Readonly<{
           ))}
           <Link
             href="/demo/aura"
-            className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-cyan-300/20 bg-cyan-400 px-4 text-sm font-semibold text-slate-950 transition-colors hover:bg-cyan-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+            className="mt-2 inline-flex min-h-11 items-center justify-center rounded-lg border border-violet-300/20 bg-violet-400 px-4 text-sm font-semibold text-zinc-950 transition-colors hover:bg-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-200"
             onClick={closeMenu}
           >
             {copy.auraDemo}

@@ -34,7 +34,7 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col antialiased">
         <a
           href="#main-content"
-          className="sr-only z-50 rounded-md bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
+          className="sr-only z-50 rounded-md bg-violet-400 px-4 py-2 text-sm font-semibold text-zinc-950 focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
         >
           {copy.skipToContent}
         </a>

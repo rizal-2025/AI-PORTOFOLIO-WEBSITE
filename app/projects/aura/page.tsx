@@ -61,35 +61,35 @@ export default async function AuraCaseStudyPage() {
   if ((await getServerLocale()) === "en-US") return <EnglishAuraProjectPage />;
   return (
     <>
-      <section className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13] text-white">
+      <section className="relative isolate overflow-hidden border-b border-zinc-800 bg-[#07070b] text-white">
         <div className="matrix-grid absolute inset-0 -z-20" aria-hidden="true" />
-        <div className="absolute right-[-10rem] top-[-12rem] -z-10 size-[34rem] rounded-full bg-emerald-500/10 blur-[120px]" aria-hidden="true" />
+        <div className="absolute right-[-10rem] top-[-12rem] -z-10 size-[34rem] rounded-full bg-violet-500/10 blur-[120px]" aria-hidden="true" />
         <PageContainer className="py-8 sm:py-10">
-          <nav aria-label="Breadcrumb" className="font-mono text-xs text-slate-500">
-            <Link href="/projects" className="transition-colors hover:text-emerald-300">Projects</Link>
-            <span className="mx-2 text-slate-700" aria-hidden="true">/</span>
-            <span aria-current="page" className="text-slate-300">AURA</span>
+          <nav aria-label="Breadcrumb" className="font-mono text-xs text-zinc-500">
+            <Link href="/projects" className="transition-colors hover:text-violet-300">Projects</Link>
+            <span className="mx-2 text-zinc-700" aria-hidden="true">/</span>
+            <span aria-current="page" className="text-zinc-300">AURA</span>
           </nav>
         </PageContainer>
         <PageContainer className="grid gap-12 pb-20 sm:pb-28 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
-              <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden="true" />
+            <p className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/5 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">
+              <span className="size-1.5 rounded-full bg-violet-400" aria-hidden="true" />
               Agen AI unggulan
             </p>
-            <h1 className="mt-6 text-5xl font-semibold tracking-[-0.055em] text-slate-50 sm:text-7xl">
+            <h1 className="mt-6 text-5xl font-semibold tracking-[-0.055em] text-zinc-50 sm:text-7xl">
               AURA
             </h1>
-            <p className="mt-5 max-w-2xl text-xl leading-8 text-slate-200 sm:text-2xl">
+            <p className="mt-5 max-w-2xl text-xl leading-8 text-zinc-200 sm:text-2xl">
               Agen AI untuk reservasi dan layanan pelanggan dalam percakapan berbahasa Indonesia.
             </p>
-            <p className="mt-5 max-w-2xl text-base leading-8 text-slate-400">
+            <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-400">
               Studi kasus ini merangkum pendekatan produk dan engineering AURA—dari
               intent pengguna, workflow reservasi, hingga jalur handoff ke admin.
             </p>
             <div className="mt-8 flex flex-wrap gap-2" aria-label="Metadata proyek">
-              <span className="rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs text-emerald-300">STATUS: DEMO LIVE</span>
-              <span className="rounded-full border border-slate-700 bg-slate-900/70 px-3 py-1.5 font-mono text-xs text-slate-400">PERAN: {siteConfig.featuredProject.role}</span>
+              <span className="rounded-full border border-violet-400/20 bg-violet-400/5 px-3 py-1.5 font-mono text-xs text-violet-300">STATUS: DEMO LIVE</span>
+              <span className="rounded-full border border-zinc-700 bg-zinc-900/70 px-3 py-1.5 font-mono text-xs text-zinc-400">PERAN: {siteConfig.featuredProject.role}</span>
             </div>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/demo/aura">
@@ -109,27 +109,27 @@ export default async function AuraCaseStudyPage() {
                 ["STATUS", "DEMO LIVE TERSEDIA"],
                 ["INTI", "AKTIF"],
               ].map(([label, value]) => (
-                <div key={label} className="flex items-start justify-between gap-5 border-b border-slate-800 pb-3 last:border-0 last:pb-0">
-                  <dt className="text-slate-500">{label}</dt>
-                  <dd className="text-right text-emerald-300">{value}</dd>
+                <div key={label} className="flex items-start justify-between gap-5 border-b border-zinc-800 pb-3 last:border-0 last:pb-0">
+                  <dt className="text-zinc-500">{label}</dt>
+                  <dd className="text-right text-violet-300">{value}</dd>
                 </div>
               ))}
             </dl>
-            <p className="border-t border-slate-800 px-5 py-3 text-xs leading-5 text-slate-500">
+            <p className="border-t border-zinc-800 px-5 py-3 text-xs leading-5 text-zinc-500">
               Demo self-hosted tersedia saat backend aktif.
             </p>
           </TerminalPanel>
         </PageContainer>
       </section>
 
-      <section className="bg-[#080e19] py-16 sm:py-24">
+      <section className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer>
           <div className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr] lg:gap-20">
             <div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">01 / Gambaran umum</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Menerjemahkan percakapan ke alur yang jelas.</h2>
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">01 / Gambaran umum</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">Menerjemahkan percakapan ke alur yang jelas.</h2>
             </div>
-            <div className="max-w-2xl space-y-5 text-base leading-8 text-slate-400">
+            <div className="max-w-2xl space-y-5 text-base leading-8 text-zinc-400">
               <p>AURA adalah agen AI untuk reservasi dan layanan pelanggan yang membantu pengguna menyampaikan kebutuhan melalui percakapan berbahasa Indonesia.</p>
               <p>Sistem ini relevan bagi operasional yang menangani pertanyaan umum, perubahan jadwal, pembatalan, dan kebutuhan eskalasi ke customer service.</p>
               <p>Bahasa yang natural penting karena pelanggan tidak selalu menyampaikan detail dengan format yang sama. AURA difokuskan untuk memahami intent, mengumpulkan informasi yang dibutuhkan, dan menjaga jalur bantuan manusia tetap tersedia.</p>
@@ -138,103 +138,103 @@ export default async function AuraCaseStudyPage() {
         </PageContainer>
       </section>
 
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
+      <section className="border-y border-zinc-800 bg-[#07070b] py-16 sm:py-24">
         <PageContainer>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">02 / Masalah bisnis</p>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">02 / Masalah bisnis</p>
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            <article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-7 sm:p-8">
-              <h2 className="text-2xl font-semibold text-slate-100">Masalah yang ditangani</h2>
-              <ul className="mt-6 grid gap-4 text-sm leading-6 text-slate-400">
-                {["Reservasi dan pertanyaan umum dilakukan secara berulang.", "Pelanggan menggunakan bahasa dan detail permintaan yang bervariasi.", "Perubahan atau pembatalan membutuhkan pengecekan data.", "Customer service membutuhkan jalur eskalasi yang jelas."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}
+            <article className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-7 sm:p-8">
+              <h2 className="text-2xl font-semibold text-zinc-100">Masalah yang ditangani</h2>
+              <ul className="mt-6 grid gap-4 text-sm leading-6 text-zinc-400">
+                {["Reservasi dan pertanyaan umum dilakukan secara berulang.", "Pelanggan menggunakan bahasa dan detail permintaan yang bervariasi.", "Perubahan atau pembatalan membutuhkan pengecekan data.", "Customer service membutuhkan jalur eskalasi yang jelas."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />{item}</li>)}
               </ul>
             </article>
-            <article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-7 sm:p-8">
-              <h2 className="text-2xl font-semibold text-slate-100">Dampak operasional</h2>
-              <p className="mt-6 text-sm leading-7 text-slate-400">Alur manual dapat melambat ketika informasi perlu dicek ulang atau berpindah antar anggota tim. Tanpa pola percakapan yang konsisten, kebutuhan pelanggan juga lebih mudah kehilangan konteks.</p>
-              <p className="mt-4 text-sm leading-7 text-slate-400">AURA menjadi pendekatan untuk membangun alur yang lebih terstruktur tanpa menghilangkan titik kontrol manusia.</p>
+            <article className="rounded-2xl border border-violet-400/15 bg-violet-400/[0.035] p-7 sm:p-8">
+              <h2 className="text-2xl font-semibold text-zinc-100">Dampak operasional</h2>
+              <p className="mt-6 text-sm leading-7 text-zinc-400">Alur manual dapat melambat ketika informasi perlu dicek ulang atau berpindah antar anggota tim. Tanpa pola percakapan yang konsisten, kebutuhan pelanggan juga lebih mudah kehilangan konteks.</p>
+              <p className="mt-4 text-sm leading-7 text-zinc-400">AURA menjadi pendekatan untuk membangun alur yang lebih terstruktur tanpa menghilangkan titik kontrol manusia.</p>
             </article>
           </div>
         </PageContainer>
       </section>
 
-      <section className="bg-[#080e19] py-16 sm:py-24">
+      <section className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">03 / Alur solusi</p>
-          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Satu pesan, beberapa lapisan keputusan yang dapat dijelaskan.</h2>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">03 / Alur solusi</p>
+          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">Satu pesan, beberapa lapisan keputusan yang dapat dijelaskan.</h2>
           <div className="mt-10 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap" aria-label="Alur solusi AURA dari pesan pengguna hingga handoff admin opsional">
             {solutionFlow.map((step, index) => (
               <div key={step} className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-                <div className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-4 text-center text-sm font-medium text-slate-200 sm:min-w-36">{step}</div>
-                {index < solutionFlow.length - 1 ? <span className="rotate-90 text-center font-mono text-emerald-300 sm:rotate-0" aria-hidden="true">→</span> : null}
+                <div className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-4 text-center text-sm font-medium text-zinc-200 sm:min-w-36">{step}</div>
+                {index < solutionFlow.length - 1 ? <span className="rotate-90 text-center font-mono text-violet-300 sm:rotate-0" aria-hidden="true">→</span> : null}
               </div>
             ))}
           </div>
-          <p className="mt-6 max-w-3xl text-sm leading-7 text-slate-400">Setiap node menjelaskan langkah dalam alur; admin handoff tetap tersedia sebagai jalur opsional ketika agent tidak seharusnya menyelesaikan permintaan sendiri.</p>
+          <p className="mt-6 max-w-3xl text-sm leading-7 text-zinc-400">Setiap node menjelaskan langkah dalam alur; admin handoff tetap tersedia sebagai jalur opsional ketika agent tidak seharusnya menyelesaikan permintaan sendiri.</p>
         </PageContainer>
       </section>
 
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
+      <section className="border-y border-zinc-800 bg-[#07070b] py-16 sm:py-24">
         <PageContainer>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">04 / Fitur utama</p>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">04 / Fitur utama</p>
           <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {featureCards.map(([title, description, status], index) => (
-              <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 sm:p-6">
-                <div className="flex items-center justify-between"><span className="grid size-10 place-items-center rounded-xl border border-emerald-400/15 bg-emerald-400/5 text-emerald-300"><svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M12 5v14" /><circle cx="12" cy="12" r="8" /></svg></span><span className="font-mono text-xs text-slate-600">0{index + 1}</span></div>
-                <h2 className="mt-6 text-lg font-semibold text-slate-100">{title}</h2>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{description}</p>
-                <p className="mt-5 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-emerald-300">{status}</p>
+              <article key={title} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-5 sm:p-6">
+                <div className="flex items-center justify-between"><span className="grid size-10 place-items-center rounded-xl border border-violet-400/15 bg-violet-400/5 text-violet-300"><svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M5 12h14M12 5v14" /><circle cx="12" cy="12" r="8" /></svg></span><span className="font-mono text-xs text-zinc-600">0{index + 1}</span></div>
+                <h2 className="mt-6 text-lg font-semibold text-zinc-100">{title}</h2>
+                <p className="mt-3 text-sm leading-6 text-zinc-400">{description}</p>
+                <p className="mt-5 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-violet-300">{status}</p>
               </article>
             ))}
           </div>
         </PageContainer>
       </section>
 
-      <section className="bg-[#080e19] py-16 sm:py-24">
+      <section className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
-          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">05 / Alur percakapan</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Contoh percakapan yang terarah.</h2><p className="mt-5 text-base leading-7 text-slate-400">Ilustrasi ini menunjukkan bentuk percakapan, bukan rekaman respons dari server live.</p></div>
+          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">05 / Alur percakapan</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">Contoh percakapan yang terarah.</h2><p className="mt-5 text-base leading-7 text-zinc-400">Ilustrasi ini menunjukkan bentuk percakapan, bukan rekaman respons dari server live.</p></div>
           <TerminalPanel label="conversation sample">
             <div className="space-y-4 p-5 sm:p-6" aria-label="Contoh percakapan AURA">
-              <div className="max-w-[92%] rounded-2xl rounded-bl-sm border border-slate-700 bg-slate-900 px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-slate-500">Pengguna</p><p className="mt-2 text-sm leading-6 text-slate-200">Saya ingin reservasi untuk besok jam 7 malam, 4 orang.</p></div>
-              <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-sm border border-emerald-400/15 bg-emerald-400/[0.06] px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-emerald-300">AURA</p><p className="mt-2 text-sm leading-6 text-slate-200">Baik. Reservasi akan dibuat untuk 4 orang besok pukul 19.00. Apakah detailnya sudah benar?</p></div>
-              <div className="max-w-[92%] rounded-2xl rounded-bl-sm border border-slate-700 bg-slate-900 px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-slate-500">Pengguna</p><p className="mt-2 text-sm leading-6 text-slate-200">Ya, benar.</p></div>
-              <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-sm border border-emerald-400/15 bg-emerald-400/[0.06] px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-emerald-300">AURA</p><p className="mt-2 text-sm leading-6 text-slate-200">Reservasi berhasil dicatat.</p></div>
+              <div className="max-w-[92%] rounded-2xl rounded-bl-sm border border-zinc-700 bg-zinc-900 px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-zinc-500">Pengguna</p><p className="mt-2 text-sm leading-6 text-zinc-200">Saya ingin reservasi untuk besok jam 7 malam, 4 orang.</p></div>
+              <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-sm border border-violet-400/15 bg-violet-400/[0.06] px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-violet-300">AURA</p><p className="mt-2 text-sm leading-6 text-zinc-200">Baik. Reservasi akan dibuat untuk 4 orang besok pukul 19.00. Apakah detailnya sudah benar?</p></div>
+              <div className="max-w-[92%] rounded-2xl rounded-bl-sm border border-zinc-700 bg-zinc-900 px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-zinc-500">Pengguna</p><p className="mt-2 text-sm leading-6 text-zinc-200">Ya, benar.</p></div>
+              <div className="ml-auto max-w-[92%] rounded-2xl rounded-br-sm border border-violet-400/15 bg-violet-400/[0.06] px-4 py-3"><p className="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-violet-300">AURA</p><p className="mt-2 text-sm leading-6 text-zinc-200">Reservasi berhasil dicatat.</p></div>
             </div>
           </TerminalPanel>
         </PageContainer>
       </section>
 
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
+      <section className="border-y border-zinc-800 bg-[#07070b] py-16 sm:py-24">
         <PageContainer>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">06 / Teknologi</p>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">06 / Teknologi</p>
           <div className="mt-9 grid gap-4 md:grid-cols-2">
-            {stackGroups.map(([title, technology, description]) => <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"><p className="font-mono text-xs uppercase tracking-[0.15em] text-emerald-300">{title}</p><h2 className="mt-4 text-xl font-semibold text-slate-100">{technology}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{description}</p></article>)}
+            {stackGroups.map(([title, technology, description]) => <article key={title} className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"><p className="font-mono text-xs uppercase tracking-[0.15em] text-violet-300">{title}</p><h2 className="mt-4 text-xl font-semibold text-zinc-100">{technology}</h2><p className="mt-3 text-sm leading-6 text-zinc-400">{description}</p></article>)}
           </div>
         </PageContainer>
       </section>
 
-      <section className="bg-[#080e19] py-16 sm:py-24">
+      <section className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer className="grid gap-12 lg:grid-cols-[0.7fr_1.3fr]">
-          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">07 / Gambaran arsitektur</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">Batas yang jelas antara channel, agen, dan data.</h2><p className="mt-5 text-base leading-7 text-slate-400">Halaman Architecture menyediakan penjelasan lebih mendalam tentang rancangan sistem ini.</p><Link href="/architecture" className="mt-6 inline-flex text-sm font-semibold text-cyan-300 hover:text-cyan-200">Lihat arsitektur lengkap <span className="ml-2" aria-hidden="true">→</span></Link></div>
-          <TerminalPanel label="gambaran arsitektur"><div className="grid gap-2 p-5 font-mono text-xs sm:p-6 sm:text-sm"><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Telegram / Demo Web Publik</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">FastAPI Boundary</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-slate-700 p-3 text-slate-200">Authenticated Chat Service</div><span className="text-center text-emerald-300" aria-hidden="true">↓</span><div className="rounded-lg border border-emerald-400/20 bg-emerald-400/[0.04] p-3 text-emerald-200">Agent Orchestrator</div><div className="grid gap-2 sm:grid-cols-3"><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Reservation Service ↓ PostgreSQL</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Ollama (demo) / OpenAI (didukung)</div><div className="rounded-lg border border-slate-700 p-3 text-slate-300">Admin Handoff</div></div></div></TerminalPanel>
+          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">07 / Gambaran arsitektur</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">Batas yang jelas antara channel, agen, dan data.</h2><p className="mt-5 text-base leading-7 text-zinc-400">Halaman Architecture menyediakan penjelasan lebih mendalam tentang rancangan sistem ini.</p><Link href="/architecture" className="mt-6 inline-flex text-sm font-semibold text-violet-300 hover:text-violet-200">Lihat arsitektur lengkap <span className="ml-2" aria-hidden="true">→</span></Link></div>
+          <TerminalPanel label="gambaran arsitektur"><div className="grid gap-2 p-5 font-mono text-xs sm:p-6 sm:text-sm"><div className="rounded-lg border border-zinc-700 p-3 text-zinc-200">Telegram / Demo Web Publik</div><span className="text-center text-violet-300" aria-hidden="true">↓</span><div className="rounded-lg border border-zinc-700 p-3 text-zinc-200">FastAPI Boundary</div><span className="text-center text-violet-300" aria-hidden="true">↓</span><div className="rounded-lg border border-zinc-700 p-3 text-zinc-200">Authenticated Chat Service</div><span className="text-center text-violet-300" aria-hidden="true">↓</span><div className="rounded-lg border border-violet-400/20 bg-violet-400/[0.04] p-3 text-violet-200">Agent Orchestrator</div><div className="grid gap-2 sm:grid-cols-3"><div className="rounded-lg border border-zinc-700 p-3 text-zinc-300">Reservation Service ↓ PostgreSQL</div><div className="rounded-lg border border-zinc-700 p-3 text-zinc-300">Ollama (demo) / OpenAI (didukung)</div><div className="rounded-lg border border-zinc-700 p-3 text-zinc-300">Admin Handoff</div></div></div></TerminalPanel>
         </PageContainer>
       </section>
 
-      <section className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
+      <section className="border-y border-zinc-800 bg-[#07070b] py-16 sm:py-24">
         <PageContainer className="grid gap-12 lg:grid-cols-2 lg:gap-16">
-          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">08 / Technical challenges</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50">Area yang terus dikembangkan.</h2><ul className="mt-7 grid gap-4 text-sm leading-6 text-slate-400">{challenges.map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}</ul><p className="mt-6 text-sm leading-7 text-slate-500">Ini adalah fokus desain dan pengembangan berkelanjutan, bukan klaim bahwa seluruh tantangan telah terselesaikan sempurna.</p></div>
-          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">09 / Design decisions</p><div className="mt-7 grid gap-3">{decisions.map(([title, description]) => <article key={title} className="rounded-xl border border-slate-800 bg-slate-900/50 p-5"><h2 className="text-sm font-semibold text-slate-100">{title}</h2><p className="mt-2 text-sm leading-6 text-slate-400">{description}</p></article>)}</div></div>
+          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">08 / Technical challenges</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-zinc-50">Area yang terus dikembangkan.</h2><ul className="mt-7 grid gap-4 text-sm leading-6 text-zinc-400">{challenges.map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />{item}</li>)}</ul><p className="mt-6 text-sm leading-7 text-zinc-500">Ini adalah fokus desain dan pengembangan berkelanjutan, bukan klaim bahwa seluruh tantangan telah terselesaikan sempurna.</p></div>
+          <div><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">09 / Design decisions</p><div className="mt-7 grid gap-3">{decisions.map(([title, description]) => <article key={title} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5"><h2 className="text-sm font-semibold text-zinc-100">{title}</h2><p className="mt-2 text-sm leading-6 text-zinc-400">{description}</p></article>)}</div></div>
         </PageContainer>
       </section>
 
-      <section className="bg-[#080e19] py-16 sm:py-24">
+      <section className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">10 / Status saat ini</p>
-          <div className="mt-8 grid gap-5 lg:grid-cols-3"><article className="rounded-2xl border border-emerald-400/15 bg-emerald-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Tersedia saat ini</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Demo publik percakapan dengan penanganan sesi.", "Alur buat, lihat, perbarui, dan batalkan reservasi.", "Workflow berbasis persistence dan referensi publik yang aman.", "Integrasi portfolio melalui BFF server-side."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.035] p-7"><h2 className="text-xl font-semibold text-slate-100">Proteksi engineering</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Batas BFF server-side.", "Proteksi replay dan idempotency.", "Rate limiting dan penanganan error yang aman.", "Verifikasi backup dan restore untuk data tersimpan."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-cyan-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-slate-800 bg-slate-900/50 p-7"><h2 className="text-xl font-semibold text-slate-100">Sengaja tidak dipublikasikan</h2><ul className="mt-5 grid gap-3 text-sm text-slate-400">{["Kontrol owner dan admin.", "Kredensial pribadi dan service token.", "Antarmuka operasional internal.", "Rahasia infrastruktur."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-slate-500" aria-hidden="true" />{item}</li>)}</ul></article></div>
+          <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">10 / Status saat ini</p>
+          <div className="mt-8 grid gap-5 lg:grid-cols-3"><article className="rounded-2xl border border-violet-400/15 bg-violet-400/[0.035] p-7"><h2 className="text-xl font-semibold text-zinc-100">Tersedia saat ini</h2><ul className="mt-5 grid gap-3 text-sm text-zinc-400">{["Demo publik percakapan dengan penanganan sesi.", "Alur buat, lihat, perbarui, dan batalkan reservasi.", "Workflow berbasis persistence dan referensi publik yang aman.", "Integrasi portfolio melalui BFF server-side."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-violet-400/15 bg-violet-400/[0.035] p-7"><h2 className="text-xl font-semibold text-zinc-100">Proteksi engineering</h2><ul className="mt-5 grid gap-3 text-sm text-zinc-400">{["Batas BFF server-side.", "Proteksi replay dan idempotency.", "Rate limiting dan penanganan error yang aman.", "Verifikasi backup dan restore untuk data tersimpan."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />{item}</li>)}</ul></article><article className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-7"><h2 className="text-xl font-semibold text-zinc-100">Sengaja tidak dipublikasikan</h2><ul className="mt-5 grid gap-3 text-sm text-zinc-400">{["Kontrol owner dan admin.", "Kredensial pribadi dan service token.", "Antarmuka operasional internal.", "Rahasia infrastruktur."].map((item) => <li key={item} className="flex gap-3"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-zinc-500" aria-hidden="true" />{item}</li>)}</ul></article></div>
         </PageContainer>
       </section>
 
-      <section className="border-t border-slate-800 bg-[#050a13] py-16 sm:py-24">
-        <PageContainer><div className="relative overflow-hidden rounded-3xl border border-emerald-400/20 bg-slate-900 px-7 py-12 sm:px-12 sm:py-16"><div className="absolute -right-24 -top-24 size-80 rounded-full bg-emerald-400/10 blur-3xl" aria-hidden="true" /><div className="relative max-w-3xl"><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Lanjutkan eksplorasi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-5xl">Coba AURA dalam demo publik.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-slate-400">Demo menggunakan portfolio sebagai antarmuka browser dan BFF server-side sebagai batas keamanan. Karena self-hosted, demo tersedia saat backend aktif.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/demo/aura">Coba Demo Live</ButtonLink><ButtonLink href="/architecture" variant="secondary">Lihat arsitektur</ButtonLink><ButtonLink href="/contact" variant="secondary">Hubungi saya</ButtonLink></div></div></div></PageContainer>
+      <section className="border-t border-zinc-800 bg-[#07070b] py-16 sm:py-24">
+        <PageContainer><div className="relative overflow-hidden rounded-3xl border border-violet-400/20 bg-zinc-900 px-7 py-12 sm:px-12 sm:py-16"><div className="absolute -right-24 -top-24 size-80 rounded-full bg-violet-400/10 blur-3xl" aria-hidden="true" /><div className="relative max-w-3xl"><p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">Lanjutkan eksplorasi</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-5xl">Coba AURA dalam demo publik.</h2><p className="mt-5 max-w-2xl text-base leading-7 text-zinc-400">Demo menggunakan portfolio sebagai antarmuka browser dan BFF server-side sebagai batas keamanan. Karena self-hosted, demo tersedia saat backend aktif.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><ButtonLink href="/demo/aura">Coba Demo Live</ButtonLink><ButtonLink href="/architecture" variant="secondary">Lihat arsitektur</ButtonLink><ButtonLink href="/contact" variant="secondary">Hubungi saya</ButtonLink></div></div></div></PageContainer>
       </section>
     </>
   );

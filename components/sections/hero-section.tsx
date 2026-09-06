@@ -1,35 +1,65 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
+import { SplineRobotScene } from "@/components/visuals/spline-robot-scene";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
+import type { SupportedLocale } from "@/lib/i18n/locale";
 
-export function HeroSection({ copy }: Readonly<{ copy: Dictionary["home"] }>) {
+export function HeroSection({
+  copy,
+  locale,
+}: Readonly<{
+  copy: Dictionary["home"];
+  locale: SupportedLocale;
+}>) {
+  const sceneLabels =
+    locale === "en-US"
+      ? {
+          description: "Interactive 3D robot visualization",
+          loading: "Loading the 3D robot…",
+          reducedMotion: "Static 3D preview — motion preference respected",
+          enable: "Show the 3D robot",
+          unavailable: "3D scene unavailable — portfolio content remains accessible",
+        }
+      : {
+          description: "Visualisasi robot 3D interaktif",
+          loading: "Memuat robot 3D…",
+          reducedMotion: "Pratinjau 3D statis — preferensi gerak dihormati",
+          enable: "Tampilkan robot 3D",
+          unavailable: "Scene 3D tidak tersedia — konten portofolio tetap dapat diakses",
+        };
+
   return (
-    <section className="border-b border-slate-800 bg-slate-950">
-      <PageContainer className="grid min-w-0 min-h-[calc(100svh-4rem)] items-center gap-12 py-20 sm:py-28 lg:min-h-0 lg:pt-16 lg:pb-24 lg:grid-cols-[1.15fr_0.85fr]">
-        <div className="min-w-0 max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-cyan-300">
-            {copy.heroEyebrow}
-          </p>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-[-0.04em] text-white sm:text-6xl">
-            {copy.heroTitle}
-          </h1>
-          <p className="mt-6 max-w-full break-words text-base leading-8 text-slate-400 sm:max-w-2xl sm:text-lg">
-            {copy.heroDescription}
-          </p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/demo/aura">{copy.tryAura}</ButtonLink>
-            <ButtonLink href="/projects" variant="secondary">{copy.viewProjects}</ButtonLink>
-          </div>
+    <section className="portfolio-hero">
+      <div className="portfolio-hero__stars" aria-hidden="true" />
+      <PageContainer className="portfolio-hero__inner">
+        <div className="portfolio-hero__meta">
+          <p>{copy.heroEyebrow}</p>
+          <span aria-hidden="true">RZ / AI</span>
         </div>
 
-        <aside className="min-w-0 max-w-full border-l border-slate-800 pl-6 sm:pl-8">
-          <p className="text-sm font-medium text-slate-200">{copy.featured}</p>
-          <p className="mt-4 max-w-full break-words text-lg leading-8 text-slate-400">
-            {copy.auraSummary}
-          </p>
-          <div className="mt-7 border-t border-slate-800 pt-5 text-sm text-cyan-200">
-            {copy.availability}
+        <div className="portfolio-hero__stage">
+          <div className="portfolio-hero__content">
+            <h1>{copy.heroTitle}</h1>
+            <div className="portfolio-hero__summary max-w-3xl">
+              <p>{copy.heroDescription}</p>
+              <div className="portfolio-hero__actions">
+                <ButtonLink href="/demo/aura">{copy.tryAura}</ButtonLink>
+                <ButtonLink href="/projects" variant="secondary">
+                  {copy.viewProjects}
+                </ButtonLink>
+              </div>
+            </div>
           </div>
+          <SplineRobotScene labels={sceneLabels} />
+        </div>
+
+        <aside className="portfolio-hero__project">
+          <div className="portfolio-hero__project-heading">
+            <span>{copy.featured}</span>
+            <span aria-hidden="true">01</span>
+          </div>
+          <p>{copy.auraSummary}</p>
+          <div>{copy.availability}</div>
         </aside>
       </PageContainer>
     </section>

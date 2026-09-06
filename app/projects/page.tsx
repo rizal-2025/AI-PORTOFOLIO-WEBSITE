@@ -143,26 +143,26 @@ export default async function ProjectsPage() {
 
   return (
     <>
-      <section data-section-id={projectsSectionIds[0]} className="relative isolate overflow-hidden border-b border-slate-800 bg-[#050a13]">
+      <section data-section-id={projectsSectionIds[0]} className="relative isolate overflow-hidden border-b border-zinc-800 bg-[#07070b]">
         <div className="matrix-grid absolute inset-0 -z-20" aria-hidden="true" />
-        <div className="absolute -left-40 top-0 -z-10 size-[28rem] rounded-full bg-emerald-500/10 blur-[110px]" aria-hidden="true" />
+        <div className="absolute -left-40 top-0 -z-10 size-[28rem] rounded-full bg-violet-500/10 blur-[110px]" aria-hidden="true" />
         <PageContainer className="grid gap-12 py-20 sm:py-28 lg:grid-cols-[1fr_22rem] lg:items-end">
           <div>
-            <p className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-emerald-300">
-              <span className="size-1.5 rounded-full bg-emerald-400" aria-hidden="true" />{copy.archive}
+            <p className="inline-flex items-center gap-2 rounded-full border border-violet-400/20 bg-violet-400/5 px-3 py-1.5 font-mono text-xs font-semibold uppercase tracking-[0.16em] text-violet-300">
+              <span className="size-1.5 rounded-full bg-violet-400" aria-hidden="true" />{copy.archive}
             </p>
-            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.06] tracking-[-0.045em] text-slate-50 sm:text-6xl">
-              {copy.titleLead} <span className="text-emerald-300">{copy.titleAccent}</span>
+            <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.06] tracking-[-0.045em] text-zinc-50 sm:text-6xl">
+              {copy.titleLead} <span className="text-violet-300">{copy.titleAccent}</span>
             </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-400 sm:text-lg">{copy.introduction}</p>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-zinc-400 sm:text-lg">{copy.introduction}</p>
           </div>
           <TerminalPanel label={copy.indexLabel}>
             <dl className="grid gap-3 p-5 font-mono text-xs sm:text-sm">
               {copy.indexRows.map(([label, value], index) => (
                 <div key={label} className="flex items-center justify-between gap-4">
-                  <dt className="text-slate-500">{label}</dt>
-                  <dd className={index === 1 ? "text-cyan-300" : "text-emerald-300"}>
-                    {index === 2 ? <span className="mr-2 inline-block size-1.5 rounded-full bg-emerald-400" aria-hidden="true" /> : null}{value}
+                  <dt className="text-zinc-500">{label}</dt>
+                  <dd className={index === 1 ? "text-violet-300" : "text-violet-300"}>
+                    {index === 2 ? <span className="mr-2 inline-block size-1.5 rounded-full bg-violet-400" aria-hidden="true" /> : null}{value}
                   </dd>
                 </div>
               ))}
@@ -171,35 +171,35 @@ export default async function ProjectsPage() {
         </PageContainer>
       </section>
 
-      <section data-section-id={projectsSectionIds[1]} className="bg-[#080e19] py-16 sm:py-24">
+      <section data-section-id={projectsSectionIds[1]} className="bg-[#0b0a0f] py-16 sm:py-24">
         <PageContainer>
           <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">{copy.featuredEyebrow}</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">{copy.featuredTitle}</h2>
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">{copy.featuredEyebrow}</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">{copy.featuredTitle}</h2>
             </div>
-            <p className="font-mono text-xs text-slate-500">{copy.indexValue}</p>
+            <p className="font-mono text-xs text-zinc-500">{copy.indexValue}</p>
           </div>
           <ProjectCard {...project} labels={copy.cardLabels} />
         </PageContainer>
       </section>
 
-      <section data-section-id={projectsSectionIds[2]} className="border-y border-slate-800 bg-[#050a13] py-16 sm:py-24">
+      <section data-section-id={projectsSectionIds[2]} className="border-y border-zinc-800 bg-[#07070b] py-16 sm:py-24">
         <PageContainer>
           <div className="max-w-2xl">
-            <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">{copy.queueEyebrow}</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-slate-50 sm:text-4xl">{copy.queueTitle}</h2>
-            <p className="mt-4 text-base leading-7 text-slate-400">{copy.queueDescription}</p>
+            <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-violet-300">{copy.queueEyebrow}</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.03em] text-zinc-50 sm:text-4xl">{copy.queueTitle}</h2>
+            <p className="mt-4 text-base leading-7 text-zinc-400">{copy.queueDescription}</p>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {copy.queue.map(([title, status, description], index) => (
-              <article key={title} className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+              <article key={title} className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6">
                 <div className="flex items-center justify-between gap-4">
-                  <span className="grid size-10 place-items-center rounded-xl border border-emerald-400/15 bg-emerald-400/5 font-mono text-xs text-emerald-300">0{index + 2}</span>
-                  <span className="rounded-full border border-slate-700 px-2.5 py-1 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-slate-400">{status}</span>
+                  <span className="grid size-10 place-items-center rounded-xl border border-violet-400/15 bg-violet-400/5 font-mono text-xs text-violet-300">0{index + 2}</span>
+                  <span className="rounded-full border border-zinc-700 px-2.5 py-1 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-zinc-400">{status}</span>
                 </div>
-                <h3 className="mt-7 text-lg font-semibold text-slate-100">{title}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-400">{description}</p>
+                <h3 className="mt-7 text-lg font-semibold text-zinc-100">{title}</h3>
+                <p className="mt-3 text-sm leading-6 text-zinc-400">{description}</p>
               </article>
             ))}
           </div>

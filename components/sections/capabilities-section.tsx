@@ -4,21 +4,21 @@ import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export function CapabilitiesSection({ copy }: Readonly<{ copy: Dictionary["home"] }>) {
   return (
-    <section className="border-y border-slate-800 bg-[#050a13] py-20 sm:py-28">
+    <section className="home-capabilities border-y border-zinc-800 bg-[#07070b] py-20 sm:py-28">
       <PageContainer>
         <SectionHeading
           eyebrow={copy.capabilitiesEyebrow}
           title={copy.capabilitiesTitle}
           description={copy.capabilitiesDescription}
         />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="capability-depth-grid mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {copy.capabilities.map((capability, index) => (
             <article
               key={capability[0]}
-              className="group rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition duration-200 hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-slate-900 sm:p-7"
+              className="capability-depth-card group rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 sm:p-7"
             >
               <div className="flex items-center justify-between">
-                <span className="grid size-11 place-items-center rounded-xl border border-cyan-300/15 bg-cyan-300/5 text-cyan-300">
+                <span className="grid size-11 place-items-center rounded-xl border border-violet-300/15 bg-violet-300/5 text-violet-300">
                   <svg
                     viewBox="0 0 24 24"
                     className="size-5"
@@ -33,14 +33,14 @@ export function CapabilitiesSection({ copy }: Readonly<{ copy: Dictionary["home"
                     <path d="M9 13h.01M15 13h.01M9.5 17h5" />
                   </svg>
                 </span>
-                <span className="font-mono text-xs font-semibold text-slate-600">
+                <span className="font-mono text-xs font-semibold text-zinc-600">
                   {String(index + 1).padStart(2, "0")}
                 </span>
               </div>
-              <h3 className="mt-7 text-lg font-semibold text-slate-100">
+              <h3 className="mt-7 text-lg font-semibold text-zinc-100">
                 {capability[0]}
               </h3>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
+              <p className="mt-3 text-sm leading-6 text-zinc-400">
                 {capability[1]}
               </p>
             </article>

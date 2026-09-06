@@ -74,7 +74,7 @@ export function LanguageSelector({ locale, copy, onSelected }: Props) {
         aria-expanded={isOpen}
         onClick={() => setIsOpen((value) => !value)}
         disabled={pending}
-        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/50 hover:text-cyan-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 disabled:opacity-60"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-zinc-700 bg-zinc-900 px-3 text-sm font-semibold text-zinc-200 transition hover:border-violet-300/50 hover:text-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-200 disabled:opacity-60"
       >
         <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
           <circle cx="12" cy="12" r="9" />
@@ -86,7 +86,7 @@ export function LanguageSelector({ locale, copy, onSelected }: Props) {
         <div
           role="menu"
           aria-label={copy.languageMenu}
-          className="absolute right-0 z-50 mt-2 min-w-52 rounded-xl border border-slate-700 bg-slate-950 p-1.5 shadow-2xl shadow-black/40"
+          className="absolute right-0 z-50 mt-2 min-w-52 rounded-xl border border-zinc-700 bg-zinc-950 p-1.5 shadow-2xl shadow-black/40"
         >
           {([
             ["id-ID", copy.indonesian],
@@ -99,10 +99,10 @@ export function LanguageSelector({ locale, copy, onSelected }: Props) {
               role="menuitemradio"
               aria-checked={selected === value}
               onClick={() => void choose(value)}
-              className="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 text-left text-sm text-slate-200 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200"
+              className="flex min-h-11 w-full items-center justify-between gap-4 rounded-lg px-3 text-left text-sm text-zinc-200 hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-200"
             >
               <span>{label}</span>
-              {selected === value ? <span className="text-cyan-300" aria-hidden="true">✓</span> : null}
+              {selected === value ? <span className="text-violet-300" aria-hidden="true">✓</span> : null}
             </button>
           ))}
         </div>

@@ -253,11 +253,11 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
     <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <section
         aria-labelledby="demo-chat-title"
-        className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/45 shadow-2xl shadow-slate-950/20"
+        className="min-w-0 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/45 shadow-2xl shadow-zinc-950/20"
       >
-        <header className="flex flex-col gap-4 border-b border-slate-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+        <header className="flex flex-col gap-4 border-b border-zinc-800 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
           <div>
-            <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-cyan-300">
+            <p className="font-mono text-xs font-bold uppercase tracking-[0.18em] text-violet-300">
               {copy.secureChannel}
             </p>
             <h2 id="demo-chat-title" className="mt-2 text-xl font-semibold text-white">
@@ -265,16 +265,16 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
             </h2>
           </div>
           <div
-            className="flex items-center gap-2 text-sm text-slate-300"
+            className="flex items-center gap-2 text-sm text-zinc-300"
             aria-live="polite"
           >
             <span
               className={`h-2.5 w-2.5 rounded-full ${
                 sessionState === "active"
-                  ? "bg-cyan-300"
+                  ? "bg-violet-300"
                   : sessionState === "checking"
                     ? "bg-amber-300"
-                    : "bg-slate-500"
+                    : "bg-zinc-500"
               }`}
               aria-hidden="true"
             />
@@ -291,11 +291,11 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
           aria-label={copy.historyLabel}
         >
           {sessionState === "checking" ? (
-            <p className="text-sm leading-7 text-slate-400">{copy.loadingSession}</p>
+            <p className="text-sm leading-7 text-zinc-400">{copy.loadingSession}</p>
           ) : sessionState === "required" ? (
             <div className="mx-auto max-w-md py-14 text-center">
               <h3 className="text-lg font-semibold text-white">{copy.startSessionTitle}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-400">
+              <p className="mt-3 text-sm leading-7 text-zinc-400">
                 {copy.sessionCookieHelp}
               </p>
               <button
@@ -303,7 +303,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                 {...BUTTON_RELOAD_ATTRIBUTES}
                 onClick={handleConnect}
                 disabled={pending !== null}
-                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-300 px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+                className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-300 px-5 text-sm font-semibold text-zinc-950 transition hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {pending === "session" ? copy.connecting : copy.startSession}
               </button>
@@ -311,7 +311,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
           ) : messages.length === 0 ? (
             <div className="mx-auto max-w-md py-14 text-center">
               <h3 className="text-lg font-semibold text-white">{copy.readyTitle}</h3>
-              <p className="mt-3 text-sm leading-7 text-slate-400">
+              <p className="mt-3 text-sm leading-7 text-zinc-400">
                 {copy.readyHelp}
               </p>
             </div>
@@ -325,20 +325,20 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                   <article
                     className={`min-w-0 max-w-[88%] rounded-2xl px-4 py-3 sm:max-w-[75%] ${
                       message.role === "user"
-                        ? "bg-cyan-300 !text-black"
-                        : "border border-slate-700 bg-slate-950/65 text-slate-200"
+                        ? "bg-violet-300 !text-black"
+                        : "border border-zinc-700 bg-zinc-950/65 text-zinc-200"
                     }`}
                   >
                     <p
                       className={`break-words whitespace-pre-wrap [overflow-wrap:anywhere] text-sm leading-6 ${
-                        message.role === "user" ? "!text-black" : "text-slate-200"
+                        message.role === "user" ? "!text-black" : "text-zinc-200"
                       }`}
                     >
                       {message.content}
                     </p>
                     <p
                       className={`mt-2 text-xs ${
-                        message.role === "user" ? "!text-black" : "text-slate-500"
+                        message.role === "user" ? "!text-black" : "text-zinc-500"
                       }`}
                     >
                       {message.role === "user" ? copy.you : "AURA"} · {formatTimestamp(message.createdAt, locale)}
@@ -351,11 +351,11 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
           <div ref={messagesEndRef} />
         </div>
 
-        <div className="border-t border-slate-800 bg-slate-950/45 px-5 py-5 sm:px-7">
+        <div className="border-t border-zinc-800 bg-zinc-950/45 px-5 py-5 sm:px-7">
           <div aria-live="polite" aria-atomic="true" className="mb-4 min-h-6 text-sm">
             {error !== null ? <p className="text-rose-300">{error}</p> : null}
             {rateLimit !== null ? <p className="mt-1 text-amber-300">{rateLimit}</p> : null}
-            {error === null && notice !== null ? <p className="text-cyan-200">{notice}</p> : null}
+            {error === null && notice !== null ? <p className="text-violet-200">{notice}</p> : null}
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row">
             <div className="min-w-0 flex-1">
@@ -377,11 +377,11 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                 autoComplete="off"
                 placeholder={copy.messagePlaceholder}
                 aria-describedby="aura-message-help"
-                className="min-h-12 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm text-white placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="min-h-12 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 text-sm text-white placeholder:text-zinc-500 disabled:cursor-not-allowed disabled:opacity-50"
               />
               <p
                 id="aura-message-help"
-                className={`mt-2 text-xs ${messageLength > MAX_MESSAGE_CODEPOINTS ? "text-rose-300" : "text-slate-500"}`}
+                className={`mt-2 text-xs ${messageLength > MAX_MESSAGE_CODEPOINTS ? "text-rose-300" : "text-zinc-500"}`}
               >
                 {messageLength}/{MAX_MESSAGE_CODEPOINTS} {copy.characters} · {copy.enterToSend}
               </p>
@@ -395,7 +395,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                 draft.trim() === "" ||
                 messageLength > MAX_MESSAGE_CODEPOINTS
               }
-              className="min-h-12 rounded-xl bg-cyan-300 px-6 text-sm font-semibold text-slate-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-12 rounded-xl bg-violet-300 px-6 text-sm font-semibold text-zinc-950 transition hover:bg-violet-200 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {pending === "chat" ? copy.sending : copy.sendMessage}
             </button>
@@ -404,25 +404,25 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
       </section>
 
       <aside className="min-w-0 space-y-6" aria-label={copy.controlsLabel}>
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/45 p-5">
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/45 p-5">
           <h2 className="text-sm font-semibold text-white">{copy.sessionStatus}</h2>
           {session === null ? (
-            <p className="mt-3 text-sm leading-6 text-slate-400">
+            <p className="mt-3 text-sm leading-6 text-zinc-400">
               {copy.noActiveSession}
             </p>
           ) : (
             <dl className="mt-4 space-y-3 text-sm">
               <div>
-                <dt className="text-slate-500">{copy.savedMessages}</dt>
-                <dd className="mt-1 font-medium text-slate-200">{session.messageCount}</dd>
+                <dt className="text-zinc-500">{copy.savedMessages}</dt>
+                <dd className="mt-1 font-medium text-zinc-200">{session.messageCount}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">{copy.idleLimit}</dt>
-                <dd className="mt-1 text-slate-300">{formatTimestamp(session.idleExpiresAt, locale)}</dd>
+                <dt className="text-zinc-500">{copy.idleLimit}</dt>
+                <dd className="mt-1 text-zinc-300">{formatTimestamp(session.idleExpiresAt, locale)}</dd>
               </div>
               <div>
-                <dt className="text-slate-500">{copy.absoluteLimit}</dt>
-                <dd className="mt-1 text-slate-300">{formatTimestamp(session.absoluteExpiresAt, locale)}</dd>
+                <dt className="text-zinc-500">{copy.absoluteLimit}</dt>
+                <dd className="mt-1 text-zinc-300">{formatTimestamp(session.absoluteExpiresAt, locale)}</dd>
               </div>
             </dl>
           )}
@@ -431,7 +431,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
             {...BUTTON_RELOAD_ATTRIBUTES}
             onClick={handleConnect}
             disabled={pending !== null}
-            className="mt-5 min-h-11 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-sm font-semibold text-slate-100 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 min-h-11 w-full rounded-xl border border-zinc-700 bg-zinc-950 px-4 text-sm font-semibold text-zinc-100 transition hover:border-violet-300/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "session"
               ? copy.syncing
@@ -444,36 +444,36 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
         {handoff !== null ? (
           <section className="rounded-2xl border border-amber-400/25 bg-amber-400/5 p-5">
             <h2 className="text-sm font-semibold text-amber-200">{copy.handoff}</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">{copy.handoffSummary}</p>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">{copy.handoffSummary}</p>
           </section>
         ) : null}
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/45 p-5">
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900/45 p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-white">{copy.reservations}</h2>
-            <span className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-300">
+            <span className="rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
               {reservations.length}
             </span>
           </div>
           {reservations.length === 0 ? (
-            <p className="mt-4 text-sm leading-6 text-slate-400">{copy.noReservations}</p>
+            <p className="mt-4 text-sm leading-6 text-zinc-400">{copy.noReservations}</p>
           ) : (
             <ul className="mt-4 space-y-3">
               {reservations.map((reservation) => (
                 <li
                   key={reservation.reservationReference}
-                  className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/55 p-3"
+                  className="min-w-0 rounded-xl border border-zinc-800 bg-zinc-950/55 p-3"
                 >
                   <div className="flex min-w-0 items-center justify-between gap-3">
-                    <p className="min-w-0 break-words font-mono text-xs text-cyan-200 [overflow-wrap:anywhere]">
+                    <p className="min-w-0 break-words font-mono text-xs text-violet-200 [overflow-wrap:anywhere]">
                       {reservation.reservationReference}
                     </p>
-                    <span className="text-xs text-slate-400">{copy.status[reservation.status]}</span>
+                    <span className="text-xs text-zinc-400">{copy.status[reservation.status]}</span>
                   </div>
-                  <p className="mt-2 text-sm text-slate-300">
+                  <p className="mt-2 text-sm text-zinc-300">
                     {formatReservationDate(reservation.reservationDate, reservation.reservationTime, locale)}
                   </p>
-                  <p className="mt-1 text-xs text-slate-500">{reservation.partySize} {copy.people}</p>
+                  <p className="mt-1 text-xs text-zinc-500">{reservation.partySize} {copy.people}</p>
                 </li>
               ))}
             </ul>
@@ -483,7 +483,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
             {...BUTTON_RELOAD_ATTRIBUTES}
             onClick={handleRefreshReservations}
             disabled={sessionState !== "active" || pending !== null}
-            className="mt-5 min-h-11 w-full rounded-xl border border-slate-700 px-4 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/60 disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-5 min-h-11 w-full rounded-xl border border-zinc-700 px-4 text-sm font-semibold text-zinc-200 transition hover:border-violet-300/60 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {pending === "reservations" ? copy.loading : copy.refreshReservations}
           </button>
@@ -491,7 +491,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
 
         <section className="rounded-2xl border border-rose-400/20 bg-rose-400/5 p-5">
           <h2 className="text-sm font-semibold text-white">{copy.resetDemo}</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-400">
+          <p className="mt-3 text-sm leading-6 text-zinc-400">
             {copy.resetHelp}
           </p>
           <button
@@ -516,7 +516,7 @@ export function AuraDemoConsole({ locale, copy }: Readonly<{ locale: SupportedLo
                 setNotice(null);
               }}
               disabled={pending !== null}
-              className="mt-2 min-h-10 w-full text-sm font-medium text-slate-400 hover:text-white disabled:opacity-50"
+              className="mt-2 min-h-10 w-full text-sm font-medium text-zinc-400 hover:text-white disabled:opacity-50"
             >
               {copy.cancel}
             </button>

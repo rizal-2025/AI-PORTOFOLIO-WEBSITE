@@ -10,10 +10,10 @@ type ButtonLinkProps = {
 
 const variants = {
   primary:
-    "border border-cyan-300/30 bg-cyan-400 text-slate-950 hover:bg-cyan-300",
+    "border border-violet-300/30 bg-violet-400 text-zinc-950 hover:bg-violet-300",
   secondary:
-    "border border-slate-700 bg-slate-900 text-slate-100 hover:border-cyan-400/60 hover:bg-slate-800",
-  light: "border border-white/70 bg-white text-slate-950 hover:bg-cyan-50",
+    "border border-zinc-700 bg-zinc-900 text-zinc-100 hover:border-violet-400/60 hover:bg-zinc-800",
+  light: "border border-violet-300/45 bg-violet-400 text-zinc-950 hover:bg-violet-300",
 };
 
 export function ButtonLink({

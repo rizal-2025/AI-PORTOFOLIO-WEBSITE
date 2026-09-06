@@ -8,10 +8,11 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getServerLocale } from "@/lib/i18n/server";
 
 export default async function Home() {
-  const copy = getDictionary(await getServerLocale()).home;
+  const locale = await getServerLocale();
+  const copy = getDictionary(locale).home;
   return (
     <>
-      <HeroSection copy={copy} />
+      <HeroSection copy={copy} locale={locale} />
       <IntroductionSection copy={copy} />
       <CapabilitiesSection copy={copy} />
       <FeaturedProjectSection copy={copy} />

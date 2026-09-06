@@ -1,6 +1,7 @@
 import { PageContainer } from "@/components/layout/page-container";
 import { ButtonLink } from "@/components/ui/button-link";
 import { SplineRobotScene } from "@/components/visuals/spline-robot-scene";
+import { siteConfig } from "@/config/site";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { SupportedLocale } from "@/lib/i18n/locale";
 
@@ -48,6 +49,20 @@ export function HeroSection({
                   {copy.viewProjects}
                 </ButtonLink>
               </div>
+              {siteConfig.contact.whatsapp && (
+                <a
+                  href={`https://wa.me/${siteConfig.contact.whatsapp}?text=${encodeURIComponent(locale === "en-US" ? "Hi Rizal, I found your portfolio and would like to discuss a project." : "Halo Rizal, saya melihat website portofolio Anda dan ingin berdiskusi tentang proyek.")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-4 inline-flex min-h-12 items-center justify-center gap-3 rounded-xl border border-emerald-300/30 bg-emerald-300/10 px-5 py-3 text-sm font-semibold text-emerald-200 transition-colors hover:bg-emerald-300/20"
+                >
+                  {locale === "en-US" ? "Chat on WhatsApp" : "Hubungi via WhatsApp"}
+                  <span aria-hidden="true">↗</span>
+                </a>
+              )}
+              <ul className="hero-specialties" aria-label={locale === "en-US" ? "Specialties" : "Spesialisasi"}>
+                <li>AI Agents</li><li>Backend Systems</li><li>LLM Integration</li>
+              </ul>
             </div>
           </div>
           <SplineRobotScene labels={sceneLabels} />

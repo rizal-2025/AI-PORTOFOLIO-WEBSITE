@@ -15,7 +15,7 @@ export default async function Home() {
       <HeroSection copy={copy} locale={locale} />
       <IntroductionSection copy={copy} />
       <CapabilitiesSection copy={copy} />
-      <FeaturedProjectSection copy={copy} />
+      <FeaturedProjectSection copy={copy} locale={locale} />
       <CurrentFocusSection copy={copy} />
       <ContactCtaSection copy={copy} />
     </>

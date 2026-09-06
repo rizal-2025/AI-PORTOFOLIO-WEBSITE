@@ -18,6 +18,7 @@ type OwnerDetails = {
 
 type ContactDetails = {
   email: string | null;
+  whatsapp: string | null;
   linkedin: string | null;
   github: string | null;
 };
@@ -54,6 +55,7 @@ export const siteConfig = {
   } as OwnerDetails,
   contact: {
     email: "ahmadrizalkurniawan02@gmail.com",
+    whatsapp: "6282230377571",
     linkedin: null,
     github: null,
   } as ContactDetails,
